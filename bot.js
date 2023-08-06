@@ -1,3 +1,4 @@
+// ############# Defining and importing #############
 // importing the needed libraries:
 const { Telegraf, Markup } = require("telegraf");
 const sqlite3 = require("sqlite3");
@@ -34,6 +35,63 @@ const numpad = [
   ["1", "2", "3"],
   [backButton, "0"], // Spanning 2 columns
 ];
+
+// ################## Functions #####################
+function readCell(row, column) {
+  const query = `SELECT ${column} FROM teacher WHERE rowid = ?`;
+  const params = [row];
+
+  db.get(query, params, (error, row) => {
+    if (error) {
+      console.error(error);
+      return error;
+    } else {
+      if (row) {
+        const cellValue = row.column;
+        return cellValue;
+      } else {
+        console.log("No matching row found.");
+        return null;
+      }
+    }
+  });
+}
+
+console.log();
+
+function searchProfessor(name) {
+  const query = "SELECT * FROM teacher WHERE name LIKE ?";
+  const params = ["%" + name + "%"];
+
+  db.all(query, params, (error, rows) => {
+    if (error) {
+      return error;
+    } else {
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    }
+  });
+}
+
+function writeCell(rowId, column, info) {
+  const query = `UPDATE teacher SET ${column} = ? WHERE rowid = ?`;
+  const params = [info, rowId];
+
+  db.run(query, params, (error) => {
+    if (error) {
+      console.error(error);
+      return;
+    } else {
+      console.log("Cell updated successfully.");
+      return;
+    }
+  });
+}
+
+// ################## Bot commands ###################
 
 // start command:
 bot.start((ctx) => {
@@ -238,7 +296,11 @@ bot.hears(backButton, (ctx) => {
 });
 
 // searching for a professor:
-bot.on();
+bot.on("text", (ctx) => {
+  if (menu == "search_menu0") {
+    console.log(searchProfessor(ctx.message.text));
+  }
+});
 
 // launching the bot:
 bot.launch();
