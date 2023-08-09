@@ -15,7 +15,7 @@ const bot = new Telegraf(token);
 //     prof_options
 //     numpad
 let menu = "main_menu";
-
+let resultArray = [];
 // keyboard buttons:
 const backButton = "◀️ بازگشت";
 const searchButton = "🔎 جست و جو";
@@ -28,10 +28,10 @@ const mainKeyboard = [[searchButton], [UTSocietyButton, UTPostsButton]];
 const backKeyboard = [[backButton]];
 
 const numpad = [
-  ["7", "8", "9"],
-  ["4", "5", "6"],
-  ["1", "2", "3"],
-  [backButton, "0"], // Spanning 2 columns
+  ["8", "9", "10"],
+  ["5", "6", "7"],
+  ["2", "3", "4"],
+  [backButton, "0", "1"], // Spanning 2 columns
 ];
 
 const profKeyboard = [
@@ -86,7 +86,7 @@ function searchByName(profName, callback) {
     }
 
     // Extract the values from the rows and store them in a new array
-    const resultArray = rows.map((row) => row);
+    resultArray = rows.map((row) => row);
 
     callback(null, resultArray);
 
@@ -104,6 +104,19 @@ function searchByName(profName, callback) {
   });
 }
 
+function updateCell(teacherId, columnName, newValue) {
+  // Prepare the SQL query with placeholders for the parameters
+  const sql = `UPDATE teacher SET ${columnName} = ? WHERE id = ?`;
+
+  // Execute the query with the parameters
+  db.run(sql, [newValue, teacherId], function (err) {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(`Updated ${columnName} for teacher with ID ${teacherId}`);
+    }
+  });
+}
 // ################## Bot commands ###################
 // start command:
 bot.start((ctx) => {
@@ -492,7 +505,7 @@ bot.hears(/.*/, (ctx) => {
           }
 
           //// checking for the rate:
-          if (resultArray[0].score != 0.0) {
+          if (resultArray[0].score_num != 0) {
             caption +=
               "\n⭐️نمره‌ی استاد از دید دانشجویان: " +
               resultArray[0].score.toFixed(1).toString() +
@@ -529,6 +542,53 @@ bot.hears(/.*/, (ctx) => {
           menu = "search_results";
         }
       });
+    } else if (menu == "numpad") {
+      if (/\D/.test(ctx.message.text)) {
+        const options = {
+          reply_markup: { keyboard: numpad, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `باید یک عدد بین ۰ و ۱۰ وارد کنی!`,
+          options
+        );
+        menu = "numpad";
+      } else if (
+        parseInt(ctx.message.text) > 10 ||
+        parseInt(ctx.message.text) < 0
+      ) {
+        const options = {
+          reply_markup: { keyboard: numpad, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `باید یک عدد بین ۰ و ۱۰ وارد کنی!`,
+          options
+        );
+        menu = "numpad";
+      } else {
+        const rate =
+          parseFloat(resultArray[0].score_num) *
+            parseFloat(resultArray[0].score) +
+          parseFloat(ctx.message.text);
+        rate = rate / (parseFloat(resultArray[0].score_num) + 1);
+        updateCell(resultArray[0].id, "score", rate);
+        updateCell(
+          resultArray[0].id,
+          "score_num",
+          resultArray[0].score_num + 1
+        );
+        const options = {
+          reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
+        };
+        // sending the message
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          "نمره‌دهی با موفقیت انجام شد.",
+          options
+        );
+        menu = "prof_options";
+      }
     } else {
       resetBot(ctx.chat.id);
     }
