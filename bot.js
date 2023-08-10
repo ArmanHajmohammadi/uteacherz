@@ -105,6 +105,8 @@ function searchByName(profName, callback) {
 }
 
 function updateCell(teacherId, columnName, newValue) {
+  // opening the database:
+  const db = new sqlite3.Database("./Data/uteacherz.db");
   // Prepare the SQL query with placeholders for the parameters
   const sql = `UPDATE teacher SET ${columnName} = ? WHERE id = ?`;
 
@@ -114,6 +116,11 @@ function updateCell(teacherId, columnName, newValue) {
       console.error(err);
     } else {
       console.log(`Updated ${columnName} for teacher with ID ${teacherId}`);
+    }
+  });
+  db.close((error) => {
+    if (error) {
+      console.error(error.message);
     }
   });
 }
@@ -567,7 +574,7 @@ bot.hears(/.*/, (ctx) => {
         );
         menu = "numpad";
       } else {
-        const rate =
+        let rate =
           parseFloat(resultArray[0].score_num) *
             parseFloat(resultArray[0].score) +
           parseFloat(ctx.message.text);
