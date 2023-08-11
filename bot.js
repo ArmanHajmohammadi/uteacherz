@@ -417,6 +417,28 @@ bot.hears(/.*/, (ctx) => {
           options
         );
         menu = "search_menu";
+      } else if (/[a-zA-Z]/.test(ctx.message.text)) {
+        const options = {
+          reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `اسم استاد نمیتونه شامل حرف انگلیسی باشه.
+          لطفا اسم استادت رو فارسی وارد کن :)`,
+          options
+        );
+        menu = "search_menu";
+      } else if (/[0-9]/.test(ctx.message.text)) {
+        const options = {
+          reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `اسم استاد نمیتونه شامل عدد باشه.
+          لطفا اسم استادت رو دوباره وارد کن :)`,
+          options
+        );
+        menu = "search_menu";
       } else {
         searchByName(ctx.message.text, (err, resultArray) => {
           if (err) {
@@ -455,7 +477,7 @@ bot.hears(/.*/, (ctx) => {
 یه بار دیگه اسم استاد مد نظرت رو بهم میدی؟!`,
               options
             );
-            menu = "search_results";
+            menu = "search_menu";
           }
         });
       }
@@ -512,11 +534,11 @@ bot.hears(/.*/, (ctx) => {
           }
 
           //// checking for the rate:
-          if (resultArray[0].score_num != 0) {
+          if (resultArray[0].rate_number != 0) {
             caption +=
               "\n⭐️نمره‌ی استاد از دید دانشجویان: " +
-              resultArray[0].score.toFixed(1).toString() +
-              `/10 (${resultArray[0].score_num.toString()} رای)\n`;
+              resultArray[0].rate.toFixed(1).toString() +
+              `/10 (${resultArray[0].rate_number.toString()} رای)\n`;
           }
 
           // adding the ID of the bot
@@ -575,15 +597,15 @@ bot.hears(/.*/, (ctx) => {
         menu = "numpad";
       } else {
         let rate =
-          parseFloat(resultArray[0].score_num) *
-            parseFloat(resultArray[0].score) +
+          parseFloat(resultArray[0].rate_number) *
+            parseFloat(resultArray[0].rate) +
           parseFloat(ctx.message.text);
-        rate = rate / (parseFloat(resultArray[0].score_num) + 1);
-        updateCell(resultArray[0].id, "score", rate);
+        rate = rate / (parseFloat(resultArray[0].rate_number) + 1);
+        updateCell(resultArray[0].id, "rate", rate);
         updateCell(
           resultArray[0].id,
-          "score_num",
-          resultArray[0].score_num + 1
+          "rate_number",
+          resultArray[0].rate_number + 1
         );
         const options = {
           reply_markup: { keyboard: profKeyboard, resize_keyboard: true },

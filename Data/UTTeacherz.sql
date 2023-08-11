@@ -58,9 +58,10 @@ CREATE TABLE teacher (
   comment48 TEXT DEFAULT '',
   comment49 TEXT DEFAULT '',
   comment50 TEXT DEFAULT '',
-  score FLOAT DEFAULT 0.0,
-  score_id TEXT DEFAULT '' ,
-  score_num INTEGER DEFAULT 0
+  comment_id TEXT DEFAULT '' ,
+  rate FLOAT DEFAULT 0.0,
+  rate_id TEXT DEFAULT '' ,
+  rate_number INTEGER DEFAULT 0
 );
 
 
@@ -2143,3 +2144,4 @@ INSERT INTO teacher (id, name, URL, email, degree, workplace, telephone, image_f
 (2068, 'حسن یوسفی قلعه جوق', 'https://profile.ut.ac.ir/~hyosefi', 'hyosefi@ut.ac.ir', 'استادیار', 'پردیس دانشکده های فنی / دانشکده مهندسی عمران', '0', '2068.jpg', '-'),
 (2069, 'عقیل یوسفی کماء', 'https://profile.ut.ac.ir/~aykoma', 'aykoma@ut.ac.ir', 'استاد', 'پردیس دانشکده های فنی / دانشکده مهندسی مکانیک', '88024228', '2069.jpg', '-'),
 (2070, 'جمال کزازي', 'https://ece.ut.ac.ir/~students/jamal.kazazi', 'jamal.kazazi@ut.ac.ir', '0', 'دانشکده مهندسي برق و کامپيوتر', '0', '2070.jpg', '-');
+
