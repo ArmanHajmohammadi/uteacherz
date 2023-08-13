@@ -350,7 +350,9 @@ bot.start((ctx) => {
 
 برای خوندن راهنمای ربات، دستور /help رو وارد کن :)
 
-🤖 تعداد کاربران فعال ربات تا به این لحظه: ${usersCount + 1}`,
+🤖 تعداد کاربران فعال ربات تا به این لحظه: ${replaceEnglishDigitsWithPersian(
+              (usersCount + 1).toString()
+            )}`,
             options
           );
           menu = "main_menu";
@@ -1047,6 +1049,35 @@ bot.hears(/.*/, (ctx) => {
                 ctx.chat.id.toString() +
                 "#"
             );
+            // defining the caption
+            let postText = `👤 [${resultArray[0].fullName.toString()}](https://profile.ut.ac.ir${resultArray[0].url.toString()})\n`;
+            //// checking for degree
+            if (resultArray[0].degree.toString().length > 3) {
+              postText +=
+                "\n🎖 درجه: " + resultArray[0].degree.toString() + "\n";
+            }
+
+            //// checking for work place
+            if (resultArray[0].organizations.toString().length > 3) {
+              postText +=
+                "\n🏢 محل کار: " +
+                resultArray[0].organizations
+                  .toString()
+                  .replace(`[{"name":"`, "")
+                  .replace(`"}]`, "") +
+                "\n";
+            }
+            postText = `✍️ نظر: 
+${ctx.message.text.toString()}
+
+@UTGroups`;
+
+            // reply:
+            const postOptions = {
+              disable_web_page_preview: true,
+              parse_mode: "Markdown",
+            };
+            bot.telegram.sendMessage("@uteacherz", postText, postOptions);
             // updating the resultArray:
             searchByName(resultArray[0].fullName, (err, resultArray) => {
               if (err) {
@@ -1068,6 +1099,7 @@ bot.hears(/.*/, (ctx) => {
           `نظر شما با موفقیت ثبت شد.`,
           options
         );
+
         menu = "prof_options";
       }
     } else {
