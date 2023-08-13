@@ -729,40 +729,56 @@ bot.action(/Report#/g, (ctx) => {
       text: "❌ حذف کامنت",
       callback_data:
         "Delete#" +
-        ctx.query.toString().split("#")[2] +
+        ctx.callbackQuery.data.toString().split("#")[2] +
         "#" +
-        ctx.query.toString().split("#")[3],
+        ctx.callbackQuery.data.toString().split("#")[3],
     },
     {
       text: "🗑 گزارش بی‌مورد",
-      callback_data: "Block#" + ctx.query.toString().split("#")[1],
+      callback_data: "Block#" + ctx.callbackQuery.data.toString().split("#")[1],
     },
   ];
-  ctx.editMessageReplyMarkup();
+  // editting the message
   ctx.editMessageText("گزارش شما ثبت شد.");
   // sending the comments
-  bot.telegram.sendMessage(
-    "@ArmanHajmohammadi",
-    resultArray[0][`comment${i}`].toString(),
-    { reply_markup: { inline_keyboard: [reportKeyboard] } }
-  );
+  bot.telegram.sendMessage(6116052382, ctx.callbackQuery.message.text, {
+    reply_markup: { inline_keyboard: [reportKeyboard] },
+  });
 });
 
 // delete inline button handler
 bot.action(/Delete#/g, (ctx) => {
-  const comment_number = ctx.query.toString().split("#")[1];
-  const professorID = ctx.query.toString().split("#")[2];
+  const comment_number = ctx.callbackQuery.data.toString().split("#")[1];
+  const professorID = ctx.callbackQuery.data.toString().split("#")[2];
   updateCell(professorID, `comment${comment_number}`, "");
-  ctx.editMessageReplyMarkup();
   ctx.editMessageText("نظر با موفقیت حذف شد.");
 });
 
 // Block inline button handler
 bot.action(/Block#/g, (ctx) => {
-  const user_chat_id = ctx.query.toString().split("#")[1];
-  updateBlackList(user_chat_id + "#");
-  ctx.editMessageReplyMarkup();
-  ctx.editMessageText(":کاربر با موفقیت بلاک شد.");
+  readBotInfo(1)
+    .then((row) => {
+      if (row) {
+        // Access the values from the row
+        const blackList = row.black_list;
+        const user_chat_id = ctx.callbackQuery.data.toString().split("#")[1];
+        console.log("Bot Info:");
+        console.log("blackList:", blackList);
+
+        writeBotInfo(1, "black_list", blackList + user_chat_id + "#")
+          .then(() => {
+            console.log("Cell updated successfully.");
+            ctx.editMessageText("کاربر با موفقیت بلاک شد.");
+          })
+          .catch((error) => {
+            console.error("An error occurred while updating the cell:", error);
+          });
+      }
+    })
+    .catch((error) => {
+      // Handle any errors that occurred during the database operation
+      console.error(error);
+    });
 });
 
 // recieving any text:
