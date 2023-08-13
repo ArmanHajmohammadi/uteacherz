@@ -266,6 +266,30 @@ function readBotInfo(rowId = 1) {
     db.close();
   });
 }
+
+function writeBotInfo(rowId = 1, columnName, newValue) {
+  return new Promise((resolve, reject) => {
+    // opening the database:
+    let db = new sqlite3.Database("./Data/uteacherz.db");
+
+    const updateQuery = `UPDATE bot_info SET ${columnName} = ? WHERE id = ?`;
+
+    db.run(updateQuery, [newValue, rowId], function (err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      if (this.changes > 0) {
+        resolve();
+      } else {
+        resolve(null);
+      }
+    });
+
+    db.close();
+  });
+}
 // ################## Bot commands ###################
 // start command:
 bot.start((ctx) => {
@@ -283,6 +307,53 @@ bot.start((ctx) => {
           console.log("users:", users);
           console.log("usersCount:", usersCount);
           console.log("blackList:", blackList);
+
+          if (!users.toString().includes(ctx.chat.id.toString())) {
+            writeBotInfo(1, "users", users + ctx.chat.id.toString() + "#")
+              .then(() => {
+                console.log("Cell updated successfully.");
+              })
+              .catch((error) => {
+                console.error(
+                  "An error occurred while updating the cell:",
+                  error
+                );
+              });
+            writeBotInfo(1, "users_count", usersCount + 1)
+              .then(() => {
+                console.log("Cell updated successfully.");
+              })
+              .catch((error) => {
+                console.error(
+                  "An error occurred while updating the cell:",
+                  error
+                );
+              });
+          }
+
+          // reply:
+          const options = {
+            reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
+            disable_web_page_preview: true,
+            parse_mode: "Markdown",
+          };
+          bot.telegram.sendMessage(
+            ctx.chat.id,
+            `
+  سلام ${ctx.from.first_name != undefined ? ctx.from.first_name : ""} ${
+              ctx.from.last_name != undefined ? ctx.from.last_name : ""
+            } ☺️
+حالت چطوره؟! امیدوارم کیفت کوک باشه! :)
+خوشحال میشم اگر توی انتخاب استاد مناسب بتونم بهت کمک کنم. اینجا میتونی نظر دانشجوهای دیگه رو بخونی و یا نظر خودت رو در مورد اساتید ثبت کنی!
+اگر هم سوالی داشتی و من نتونستم بهت کمک کنم، سوالت رو حتما توی [گروه دانشگاه تهران](t.me/UTGroups) بپرس. اونجا دانشجوهای دیگه حضور دارن و حتما راهنماییت میکنن 😌
+موفق باشی ✌️
+
+برای خوندن راهنمای ربات، دستور /help رو وارد کن :)
+
+🤖 تعداد کاربران فعال ربات تا به این لحظه: ${usersCount + 1}`,
+            options
+          );
+          menu = "main_menu";
         } else {
           console.log("Row not found in the bot_info table.");
         }
@@ -291,27 +362,6 @@ bot.start((ctx) => {
         // Handle any errors that occurred during the database operation
         console.error(error);
       });
-    // reply:
-    const options = {
-      reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
-      disable_web_page_preview: true,
-      parse_mode: "Markdown",
-    };
-    bot.telegram.sendMessage(
-      ctx.chat.id,
-      `
-  سلام ${ctx.from.first_name != undefined ? ctx.from.first_name : ""} ${
-        ctx.from.last_name != undefined ? ctx.from.last_name : ""
-      } ☺️
-حالت چطوره؟! امیدوارم کیفت کوک باشه! :)
-خوشحال میشم اگر توی انتخاب استاد مناسب بتونم بهت کمک کنم. اینجا میتونی نظر دانشجوهای دیگه رو بخونی و یا نظر خودت رو در مورد اساتید ثبت کنی!
-اگر هم سوالی داشتی و من نتونستم بهت کمک کنم، سوالت رو حتما توی [گروه دانشگاه تهران](t.me/UTGroups) بپرس. اونجا دانشجوهای دیگه حضور دارن و حتما راهنماییت میکنن 😌
-موفق باشی ✌️
-
-برای خوندن راهنمای ربات، دستور /help رو وارد کن :)`,
-      options
-    );
-    menu = "main_menu";
   } catch (error) {
     console.error(error);
   }
