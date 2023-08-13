@@ -245,10 +245,52 @@ function updateCell(teacherId, columnName, newValue) {
   });
 }
 
+function readBotInfo(rowId = 1) {
+  return new Promise((resolve, reject) => {
+    // opening the database:
+    let db = new sqlite3.Database("./Data/uteacherz.db");
+
+    db.get(`SELECT * FROM bot_info WHERE id = ?`, [rowId], (err, row) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      if (row) {
+        resolve(row);
+      } else {
+        resolve(null);
+      }
+    });
+
+    db.close();
+  });
+}
 // ################## Bot commands ###################
 // start command:
 bot.start((ctx) => {
   try {
+    readBotInfo(1)
+      .then((row) => {
+        if (row) {
+          // Access the values from the row
+          const blackList = row.black_list;
+          const users = row.users;
+          const usersCount = row.users_count;
+
+          // Use the data as needed
+          console.log("Bot Info:");
+          console.log("users:", users);
+          console.log("usersCount:", usersCount);
+          console.log("blackList:", blackList);
+        } else {
+          console.log("Row not found in the bot_info table.");
+        }
+      })
+      .catch((error) => {
+        // Handle any errors that occurred during the database operation
+        console.error(error);
+      });
     // reply:
     const options = {
       reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
