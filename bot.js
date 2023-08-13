@@ -14,8 +14,11 @@ const bot = new Telegraf(token);
 //     search_results
 //     prof_options
 //     numpad
+//     submitting_comment
 let menu = "main_menu";
 let resultArray = [];
+let botInfo = [];
+
 // keyboard buttons:
 const backButton = "◀️ بازگشت";
 const searchButton = "🔎 جست و جو";
@@ -66,13 +69,130 @@ function resetBot(chatID) {
   );
   menu = "main_menu";
 }
+
+function containsAbusiveWords(text) {
+  text = text.replace(" ", "");
+  text = text.replace("*", "");
+  text = text.replace("/", "");
+  text = text.replace("+", "");
+  text = text.replace("-", "");
+  text = text.replace(".", "");
+  text = text.replace("|", "");
+  text = text.replace("$", "");
+  text = text.replace("%", "");
+  text = text.replace("_", "");
+  text = text.replace("#", "");
+  text = text.replace("@", "");
+  text = text.replace("!", "");
+  text = text.replace(",", "");
+  text = text.replace("÷", "");
+  text = text.replace("×", "");
+  text = text.replace("`", "");
+  text = text.replace("\n", "");
+  text = text.replace("\t", "");
+  text = text.replace("َ", "");
+  text = text.replace("ُ", "");
+  text = text.replace("ِ", "");
+  text = text.replace("ّ", "");
+  text = text.replace("ۀ", "");
+  text = text.replace("ً", "");
+  text = text.replace("ٌ", "");
+  text = text.replace("ٍ", "");
+  text = text.replace("‌", "");
+  text = text.replace("1", "");
+  text = text.replace("2", "");
+  text = text.replace("3", "");
+  text = text.replace("4", "");
+  text = text.replace("5", "");
+  text = text.replace("6", "");
+  text = text.replace("7", "");
+  text = text.replace("8", "");
+  text = text.replace("9", "");
+  text = text.replace("0", "");
+  const abusiveWords = [
+    "@",
+    "کسنن",
+    "کصنن",
+    "کسخوار",
+    "کصخوار",
+    "کسخار",
+    "کصخار",
+    "خوارکصده",
+    "خارکصده",
+    "خوارکسده",
+    "خارکسده",
+    "خوارکصه",
+    "خوارکسه",
+    "خارکصه",
+    "خارکسه",
+    "کصکش",
+    "کسکش",
+    "جنده",
+    "جندگی",
+    "گایید",
+    "ننتو",
+    "کیرم",
+    "تخمم",
+    "پتیاره",
+    "مادرتو",
+    "کیری",
+    "کسشر",
+    "کسوشر",
+    "کصشر",
+    "کصوشر",
+    "کسشعر",
+    "کسوشعر",
+    "کصوشعر",
+    "کصشعر",
+    "تخم",
+    "کیر",
+    "kosekhar",
+    "kosnan",
+    "kosenan",
+    "kharkos",
+    "gayid",
+    "jende",
+    "madarjend",
+    "tokhmam",
+    "kiram",
+    "koskesh",
+    "gohnakhor",
+    "nanato",
+    "madareto",
+    "petiyare",
+    "petiare",
+    "tkhmm",
+    "jnde",
+    "mdreto",
+    "kososher",
+    "kosesher",
+    "kssher",
+    "kossher",
+    "kos",
+    "جاکش",
+    "گوه",
+    "مادرخراب",
+    "فاک",
+    "ریدن",
+    "ریده",
+    "fuck",
+    "ریدم",
+  ];
+  for (const word of abusiveWords) {
+    if (text.toLowerCase().includes(word)) {
+      return true;
+    }
+  }
+
+  return false;
+}
 // ################## Database Functions #####################
 function searchByName(profName, callback) {
   // opening the database:
   const db = new sqlite3.Database("./Data/uteacherz.db");
 
   // Prepare a parameterized SELECT query with a placeholder (?)
-  const query = "SELECT * FROM teacher WHERE name LIKE ?";
+  const query = "SELECT * FROM professors WHERE fullName LIKE ?";
 
   // Create a prepared statement
   const statement = db.prepare(query);
@@ -108,14 +228,14 @@ function updateCell(teacherId, columnName, newValue) {
   // opening the database:
   const db = new sqlite3.Database("./Data/uteacherz.db");
   // Prepare the SQL query with placeholders for the parameters
-  const sql = `UPDATE teacher SET ${columnName} = ? WHERE id = ?`;
+  const sql = `UPDATE professors SET ${columnName} = ? WHERE id = ?`;
 
   // Execute the query with the parameters
   db.run(sql, [newValue, teacherId], function (err) {
     if (err) {
       console.error(err);
     } else {
-      console.log(`Updated ${columnName} for teacher with ID ${teacherId}`);
+      console.log(`Updated ${columnName} for professors with ID ${teacherId}`);
     }
   });
   db.close((error) => {
@@ -124,10 +244,12 @@ function updateCell(teacherId, columnName, newValue) {
     }
   });
 }
+
 // ################## Bot commands ###################
 // start command:
 bot.start((ctx) => {
   try {
+    // reply:
     const options = {
       reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
       disable_web_page_preview: true,
@@ -246,7 +368,7 @@ bot.hears(UTPostsButton, (ctx) => {
   }
 });
 
-// Sending the ccomplete list of the ut groups::
+// Sending the ccomplete list of the ut groups:
 bot.hears(UTSocietyButton, (ctx) => {
   try {
     const options = {
@@ -316,7 +438,7 @@ bot.hears(UTSocietyButton, (ctx) => {
   }
 });
 
-// Sending the complete list of the ut groups::
+// going one page back in the menu:
 bot.hears(backButton, (ctx) => {
   try {
     let options = {};
@@ -354,22 +476,18 @@ bot.hears(backButton, (ctx) => {
         text = "چه کاری میخوای انجام بدی؟";
         menu = "prof_options";
         break;
+      case "submitting_comment":
+        options = {
+          reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
+        };
+        text = "چه کاری میخوای انجام بدی؟";
+        menu = "prof_options";
+        break;
       default:
         options = {
           reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
-          disable_web_page_preview: true,
-          parse_mode: "Markdown",
         };
-        text = `
-  سلام ${ctx.from.first_name != undefined ? ctx.from.first_name : ""} ${
-          ctx.from.last_name != undefined ? ctx.from.last_name : ""
-        } ☺️
-حالت چطوره؟! امیدوارم کیفت کوک باشه! :)
-خوشحال میشم اگر توی انتخاب استاد مناسب بتونم بهت کمک کنم. اینجا میتونی نظر دانشجوهای دیگه رو بخونی و یا نظر خودت رو در مورد اساتید ثبت کنی!
-اگر هم سوالی داشتی و من نتونستم بهت کمک کنم، سوالت رو حتما توی [گروه دانشگاه تهران](t.me/UTGroups) بپرس. اونجا دانشجوهای دیگه حضور دارن و حتما راهنماییت میکنن 😌
-موفق باشی ✌️
-
-برای خوندن راهنمای ربات، دستور /help رو وارد کن :)`;
+        text = `متوجه نشدم! چه کاری برات انجام بدم؟!`;
         menu = "main_menu";
         break;
     }
@@ -380,10 +498,23 @@ bot.hears(backButton, (ctx) => {
   }
 });
 
-// Sending the ccomplete list of the ut groups::
+// submitting a new rate:
 bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
   try {
-    if (menu == "prof_options") {
+    if (
+      menu == "prof_options" &&
+      resultArray[0].rate_id.toString().includes(ctx.chat.id.toString())
+    ) {
+      const options = {
+        reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
+      };
+      bot.telegram.sendMessage(
+        ctx.chat.id,
+        `تو قبلاً یک بار به این استاد نمره دادی. متاسفانه امکان نمره‌دهی مجدد نیست...`,
+        options
+      );
+      menu = "prof_options";
+    } else if (menu == "prof_options") {
       const options = {
         reply_markup: { keyboard: numpad, resize_keyboard: true },
       };
@@ -399,6 +530,147 @@ bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
   } catch (error) {
     console.error(error);
   }
+});
+
+// Submitting a new comment:
+bot.hears("💬 ثبت نظر", (ctx) => {
+  try {
+    if (
+      menu == "prof_options" &&
+      resultArray[0].comment_id.toString().includes(ctx.chat.id.toString())
+    ) {
+      const options = {
+        reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
+      };
+      bot.telegram.sendMessage(
+        ctx.chat.id,
+        `تو قبلاً یک بار در مورد این استاد نظر دادی. متاسفانه امکان نظردهی مجدد نیست...`,
+        options
+      );
+      menu = "prof_options";
+    } else if (menu == "prof_options") {
+      const options = {
+        reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+      };
+      bot.telegram.sendMessage(
+        ctx.chat.id,
+        `نظرت در مورد این استاد چیه؟!`,
+        options
+      );
+      menu = "submitting_comment";
+    } else {
+      resetBot(ctx.chat.id);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+// showing all of the comments:
+bot.hears("📝 نظرات دانشجویان", (ctx) => {
+  try {
+    if (menu == "prof_options") {
+      // setting the options of the message:
+      const options = {
+        reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
+      };
+
+      for (let i = 1; i < 51; i++) {
+        if (
+          resultArray[0][`comment${i}`] != undefined &&
+          resultArray[0][`comment${i}`].toString().length < 50
+        ) {
+          if (i == 1) {
+            // sending the message
+            bot.telegram.sendMessage(
+              ctx.chat.id,
+              `تا الان نظری در مورد این استاد ثبت نشده :(`,
+              options
+            );
+            break;
+          } else {
+            // sending the message
+            bot.telegram.sendMessage(
+              ctx.chat.id,
+              `همه‌ی نظراتی که در مورد این استاد ثبت شده بود رو برات فرستادم.`,
+              options
+            );
+            break;
+          }
+        }
+        // defining the inline keyboard:
+        const reportKeyboard = [
+          {
+            text: "⚠️ گزارش",
+            callback_data:
+              "Report#" +
+              ctx.chat.id.toString() +
+              "#" +
+              i.toString() +
+              "#" +
+              resultArray[0].id.toString(),
+            // Report#chatID#Comment_Number#ProfessorsID
+          },
+        ];
+        // sending the comments
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          resultArray[0][`comment${i}`].toString(),
+          { reply_markup: { inline_keyboard: [reportKeyboard] } }
+        );
+      }
+
+      menu = "prof_options";
+    } else {
+      resetBot(ctx.chat.id);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+// report inline button handler
+bot.action(/Report#/g, (ctx) => {
+  // defining the inline keyboard:
+  const reportKeyboard = [
+    {
+      text: "❌ حذف کامنت",
+      callback_data:
+        "Delete#" +
+        ctx.query.toString().split("#")[2] +
+        "#" +
+        ctx.query.toString().split("#")[3],
+    },
+    {
+      text: "🗑 گزارش بی‌مورد",
+      callback_data: "Block#" + ctx.query.toString().split("#")[1],
+    },
+  ];
+  ctx.editMessageReplyMarkup();
+  ctx.editMessageText("گزارش شما ثبت شد.");
+  // sending the comments
+  bot.telegram.sendMessage(
+    "@ArmanHajmohammadi",
+    resultArray[0][`comment${i}`].toString(),
+    { reply_markup: { inline_keyboard: [reportKeyboard] } }
+  );
+});
+
+// delete inline button handler
+bot.action(/Delete#/g, (ctx) => {
+  const comment_number = ctx.query.toString().split("#")[1];
+  const professorID = ctx.query.toString().split("#")[2];
+  updateCell(professorID, `comment${comment_number}`, "");
+  ctx.editMessageReplyMarkup();
+  ctx.editMessageText("نظر با موفقیت حذف شد.");
+});
+
+// Block inline button handler
+bot.action(/Block#/g, (ctx) => {
+  const user_chat_id = ctx.query.toString().split("#")[1];
+  updateBlackList(user_chat_id + "#");
+  ctx.editMessageReplyMarkup();
+  ctx.editMessageText(":کاربر با موفقیت بلاک شد.");
 });
 
 // recieving any text:
@@ -449,7 +721,7 @@ bot.hears(/.*/, (ctx) => {
           if (resultArray.length > 0) {
             resultsKeyboard = [];
             for (let i = 0; i < 11 && i < resultArray.length; i++) {
-              resultsKeyboard.push([resultArray[i].name.toString()]);
+              resultsKeyboard.push([resultArray[i].fullName.toString()]);
             }
             resultsKeyboard.push([backButton]);
 
@@ -489,20 +761,12 @@ bot.hears(/.*/, (ctx) => {
         }
         if (resultArray.length == 1) {
           // defining the caption
-          let caption = `👤 [${resultArray[0].name.toString()}](${resultArray[0].URL.toString()})\n`;
+          let caption = `👤 [${resultArray[0].fullName.toString()}](https://profile.ut.ac.ir${resultArray[0].url.toString()})\n`;
 
           //// checking for email
-          if (
-            resultArray[0].email.toString().length > 3 &&
-            resultArray[0].email.toString().includes("@")
-          ) {
+          if (resultArray[0].email.toString().length > 3) {
             caption +=
-              "\n✉️ ایمیل استاد:\n" +
-              resultArray[0].email
-                .toString()
-                .replace("@@", "@")
-                .replace("G@", "@") +
-              "\n";
+              "\n✉️ ایمیل استاد:\n" + resultArray[0].email.toString() + "\n";
           }
 
           //// checking for degree
@@ -511,26 +775,14 @@ bot.hears(/.*/, (ctx) => {
           }
 
           //// checking for work place
-          if (resultArray[0].workplace.toString().length > 3) {
+          if (resultArray[0].organizations.toString().length > 3) {
             caption +=
               "\n🏢 محل کار: " +
-              resultArray[0].workplace
+              resultArray[0].organizations
                 .toString()
-                .replace("پرديس دانشکده هاي فني / ", "")
-                .replace("پردیس دانشکده های فنی / ", "") +
+                .replace(`[{"name":"`, "")
+                .replace(`"}]`, "") +
               "\n";
-          }
-
-          //// checking for telephone number
-          if (
-            resultArray[0].telephone.toString().length > 3 &&
-            !(
-              resultArray[0].telephone.toString().includes("?") ||
-              resultArray[0].telephone.toString().includes("؟")
-            )
-          ) {
-            caption +=
-              "\n☎️ شماره تماس: " + resultArray[0].telephone.toString() + "\n";
           }
 
           //// checking for the rate:
@@ -555,7 +807,12 @@ bot.hears(/.*/, (ctx) => {
           // sending the message
           bot.telegram.sendPhoto(
             ctx.chat.id,
-            { source: `./Data/photos/${resultArray[0].id}.jpg` },
+            {
+              url:
+                resultArray[0].image.length > 0
+                  ? "https://profile.ut.ac.ir" + resultArray[0].image.toString()
+                  : "https://upload.wikimedia.org/wikipedia/fa/thumb/f/fd/University_of_Tehran_logo.svg/800px-University_of_Tehran_logo.svg.png",
+            },
             options
           );
           menu = "prof_options";
@@ -596,17 +853,32 @@ bot.hears(/.*/, (ctx) => {
         );
         menu = "numpad";
       } else {
+        // Calculating the new rate:
         let rate =
           parseFloat(resultArray[0].rate_number) *
             parseFloat(resultArray[0].rate) +
           parseFloat(ctx.message.text);
         rate = rate / (parseFloat(resultArray[0].rate_number) + 1);
+        // updating the database with new values
         updateCell(resultArray[0].id, "rate", rate);
         updateCell(
           resultArray[0].id,
           "rate_number",
           resultArray[0].rate_number + 1
         );
+        updateCell(
+          resultArray[0].id,
+          "rate_id",
+          resultArray[0].rate_id.toString() + ctx.chat.id.toString() + "#"
+        );
+        // updating the resultArray:
+        searchByName(resultArray[0].fullName, (err, resultArray) => {
+          if (err) {
+            console.error("Error:", err);
+            return;
+          }
+        });
+        // setting the options of the message:
         const options = {
           reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
         };
@@ -614,6 +886,78 @@ bot.hears(/.*/, (ctx) => {
         bot.telegram.sendMessage(
           ctx.chat.id,
           "نمره‌دهی با موفقیت انجام شد.",
+          options
+        );
+        menu = "prof_options";
+      }
+    } else if (menu == "submitting_comment") {
+      if (ctx.message.text.length < 50) {
+        const options = {
+          reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `نظرت نمی‌تونه کمتر از 50 کاراکتر باشه...`,
+          options
+        );
+        menu = "submitting_comment";
+      } else if (/[a-zA-Z]/.test(ctx.message.text)) {
+        const options = {
+          reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `نظرت نمیتونه شامل حروف انگلیسی باشه. لطفاً نظرت رو تماماً فارسی تایپ کن :)`,
+          options
+        );
+        menu = "submitting_comment";
+      } else if (containsAbusiveWords(ctx.message.text.toString())) {
+        const options = {
+          reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+        };
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `خیلی بی‌ادبی 😔
+این حرفای زشتو از کجا یادگرفتی؟ 😭
+لطفاً این‌دفعه مودبانه نظرت رو بهم بگو...`,
+          options
+        );
+        menu = "submitting_comment";
+      } else {
+        // updating the database with new values
+        for (let i = 1; i < 51; i++) {
+          if (resultArray[0][`comment${i}`].toString().length < 50) {
+            updateCell(
+              resultArray[0].id,
+              `comment${i}`,
+              ctx.message.text.toString()
+            );
+            updateCell(
+              resultArray[0].id,
+              "comment_id",
+              resultArray[0].comment_id.toString() +
+                ctx.chat.id.toString() +
+                "#"
+            );
+            // updating the resultArray:
+            searchByName(resultArray[0].fullName, (err, resultArray) => {
+              if (err) {
+                console.error("Error:", err);
+                return;
+              }
+            });
+            break;
+          }
+        }
+
+        // setting the options of the message:
+        const options = {
+          reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
+        };
+        // sending the message
+        bot.telegram.sendMessage(
+          ctx.chat.id,
+          `نظر شما با موفقیت ثبت شد.`,
           options
         );
         menu = "prof_options";
