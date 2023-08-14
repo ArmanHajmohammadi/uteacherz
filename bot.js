@@ -15,8 +15,9 @@ const bot = new Telegraf(token);
 //     prof_options
 //     numpad
 //     submitting_comment
-let menu = "main_menu";
-let resultArray = [];
+let usersInfo = {
+  chatID: { menu: "main_menu", resultArray: [], resultsKeyboard: [] },
+};
 let botInfo = [];
 
 // keyboard buttons:
@@ -26,7 +27,11 @@ const UTSocietyButton = "🏛 جامعه ی دانشگاه تهران";
 const UTPostsButton = "🗒 مطالب مفید";
 
 // keyboards:
-const mainKeyboard = [[searchButton], [UTSocietyButton, UTPostsButton]];
+const mainKeyboard = [
+  [searchButton],
+  ["💳 حمایت"],
+  [UTSocietyButton, UTPostsButton],
+];
 
 const backKeyboard = [[backButton]];
 
@@ -43,8 +48,6 @@ const profKeyboard = [
   ["💬 ثبت نظر"],
   [backButton],
 ];
-
-let resultsKeyboard = [];
 
 // ################## Functions ###################
 function replaceEnglishDigitsWithPersian(str) {
@@ -67,7 +70,10 @@ function resetBot(chatID) {
     `متوجه نشدم! چه کاری برات انجام بدم؟!`,
     options
   );
-  menu = "main_menu";
+  if (usersInfo[chatID] == undefined) {
+    usersInfo[chatID] = {};
+  }
+  usersInfo[chatID].menu = "main_menu";
 }
 
 function containsAbusiveWords(text) {
@@ -187,7 +193,7 @@ function containsAbusiveWords(text) {
   return false;
 }
 // ################## Database Functions #####################
-function searchByName(profName, callback) {
+function searchByName(profName, chatID, callback) {
   // opening the database:
   const db = new sqlite3.Database("./Data/uteacherz.db");
 
@@ -206,9 +212,9 @@ function searchByName(profName, callback) {
     }
 
     // Extract the values from the rows and store them in a new array
-    resultArray = rows.map((row) => row);
+    usersInfo[chatID].resultArray = rows.map((row) => row);
 
-    callback(null, resultArray);
+    callback(null, usersInfo[chatID].resultArray);
 
     statement.finalize((error) => {
       if (error) {
@@ -294,15 +300,20 @@ function writeBotInfo(rowId = 1, columnName, newValue) {
 // start command:
 bot.start((ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             readBotInfo(1)
               .then((row) => {
@@ -372,7 +383,8 @@ bot.start((ctx) => {
                     )}`,
                     options
                   );
-                  menu = "main_menu";
+
+                  usersInfo[ctx.chat.id].menu = "main_menu";
                 } else {
                   console.log("Row not found in the bot_info table.");
                 }
@@ -398,15 +410,20 @@ bot.start((ctx) => {
 // help command:
 bot.help((ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             const options = {
               reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
@@ -425,7 +442,7 @@ bot.help((ctx) => {
 از طریق این گزینه می‌تونی به فهرست کاملی از اطلاعات مهم و مطالب آموزشی و تجارب دانشجویان سال‌های گذشته، مثل شرایط کهاد، دووجهی، انتقالی و تغییر رشته و... دسترسی پیدا کنی.`,
               options
             );
-            menu = "main_menu";
+            usersInfo[ctx.chat.id].menu = "main_menu";
           }
         } else {
           console.log("Row not found in the bot_info table.");
@@ -443,15 +460,20 @@ bot.help((ctx) => {
 // Searching for a professor:
 bot.hears(searchButton, (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             const options = {
               reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
@@ -461,7 +483,7 @@ bot.hears(searchButton, (ctx) => {
               `اسم استاد مدنظرت چیه؟!`,
               options
             );
-            menu = "search_menu";
+            usersInfo[ctx.chat.id].menu = "search_menu";
           }
         } else {
           console.log("Row not found in the bot_info table.");
@@ -479,15 +501,20 @@ bot.hears(searchButton, (ctx) => {
 // Sending an index of the posts of the ut guide channel:
 bot.hears(UTPostsButton, (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             const options = {
               reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
@@ -534,7 +561,7 @@ bot.hears(UTPostsButton, (ctx) => {
   `,
               options
             );
-            menu = "main_menu";
+            usersInfo[ctx.chat.id].menu = "main_menu";
           }
         } else {
           console.log("Row not found in the bot_info table.");
@@ -552,15 +579,20 @@ bot.hears(UTPostsButton, (ctx) => {
 // Sending the ccomplete list of the ut groups:
 bot.hears(UTSocietyButton, (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             const options = {
               reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
@@ -623,7 +655,7 @@ bot.hears(UTSocietyButton, (ctx) => {
   `,
               options
             );
-            menu = "main_menu";
+            usersInfo[ctx.chat.id].menu = "main_menu";
           }
         } else {
           console.log("Row not found in the bot_info table.");
@@ -641,19 +673,24 @@ bot.hears(UTSocietyButton, (ctx) => {
 // going one page back in the menu:
 bot.hears(backButton, (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             let options = {};
             let text = "";
-            switch (menu) {
+            switch (usersInfo[ctx.chat.id].menu) {
               case "search_menu":
                 options = {
                   reply_markup: {
@@ -664,7 +701,7 @@ bot.hears(backButton, (ctx) => {
                   parse_mode: "Markdown",
                 };
                 text = "چطور می‌تونم بهت کمک کنم؟!";
-                menu = "main_menu";
+                usersInfo[ctx.chat.id].menu = "main_menu";
                 break;
               case "search_results":
                 options = {
@@ -676,17 +713,17 @@ bot.hears(backButton, (ctx) => {
                   parse_mode: "Markdown",
                 };
                 text = "اسم استاد مدنظرت چیه؟!";
-                menu = "search_menu";
+                usersInfo[ctx.chat.id].menu = "search_menu";
                 break;
               case "prof_options":
                 options = {
                   reply_markup: {
-                    keyboard: resultsKeyboard,
+                    keyboard: usersInfo[ctx.chat.id].resultsKeyboard,
                     resize_keyboard: true,
                   },
                 };
                 text = "از بین نتایج، استاد مورد نظرت رو انتخاب کن:";
-                menu = "search_results";
+                usersInfo[ctx.chat.id].menu = "search_results";
                 break;
               case "numpad":
                 options = {
@@ -696,7 +733,7 @@ bot.hears(backButton, (ctx) => {
                   },
                 };
                 text = "چه کاری میخوای انجام بدی؟";
-                menu = "prof_options";
+                usersInfo[ctx.chat.id].menu = "prof_options";
                 break;
               case "submitting_comment":
                 options = {
@@ -706,7 +743,7 @@ bot.hears(backButton, (ctx) => {
                   },
                 };
                 text = "چه کاری میخوای انجام بدی؟";
-                menu = "prof_options";
+                usersInfo[ctx.chat.id].menu = "prof_options";
                 break;
               default:
                 options = {
@@ -716,7 +753,7 @@ bot.hears(backButton, (ctx) => {
                   },
                 };
                 text = `متوجه نشدم! چه کاری برات انجام بدم؟!`;
-                menu = "main_menu";
+                usersInfo[ctx.chat.id].menu = "main_menu";
                 break;
             }
 
@@ -738,19 +775,26 @@ bot.hears(backButton, (ctx) => {
 // submitting a new rate:
 bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             if (
-              menu == "prof_options" &&
-              resultArray[0].rate_id.toString().includes(ctx.chat.id.toString())
+              usersInfo[ctx.chat.id].menu == "prof_options" &&
+              usersInfo[ctx.chat.id].resultArray[0].rate_id
+                .toString()
+                .includes(ctx.chat.id.toString())
             ) {
               const options = {
                 reply_markup: { keyboard: profKeyboard, resize_keyboard: true },
@@ -760,8 +804,8 @@ bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
                 `تو قبلاً یک بار به این استاد نمره دادی. متاسفانه امکان نمره‌دهی مجدد نیست...`,
                 options
               );
-              menu = "prof_options";
-            } else if (menu == "prof_options") {
+              usersInfo[ctx.chat.id].menu = "prof_options";
+            } else if (usersInfo[ctx.chat.id].menu == "prof_options") {
               const options = {
                 reply_markup: { keyboard: numpad, resize_keyboard: true },
               };
@@ -770,7 +814,7 @@ bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
                 `به این استاد از ۰ تا ۱۰ چند میدی؟`,
                 options
               );
-              menu = "numpad";
+              usersInfo[ctx.chat.id].menu = "numpad";
             } else {
               resetBot(ctx.chat.id);
             }
@@ -791,19 +835,24 @@ bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
 // Submitting a new comment:
 bot.hears("💬 ثبت نظر", (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
             if (
-              menu == "prof_options" &&
-              resultArray[0].comment_id
+              usersInfo[ctx.chat.id].menu == "prof_options" &&
+              usersInfo[ctx.chat.id].resultArray[0].comment_id
                 .toString()
                 .includes(ctx.chat.id.toString())
             ) {
@@ -818,8 +867,8 @@ bot.hears("💬 ثبت نظر", (ctx) => {
                 `تو قبلاً یک بار در مورد این استاد نظر دادی. متاسفانه امکان نظردهی مجدد نیست...`,
                 options
               );
-              menu = "prof_options";
-            } else if (menu == "prof_options") {
+              usersInfo[ctx.chat.id].menu = "prof_options";
+            } else if (usersInfo[ctx.chat.id].menu == "prof_options") {
               const options = {
                 reply_markup: {
                   keyboard: backKeyboard,
@@ -831,7 +880,7 @@ bot.hears("💬 ثبت نظر", (ctx) => {
                 `نظرت در مورد این استاد چیه؟!`,
                 options
               );
-              menu = "submitting_comment";
+              usersInfo[ctx.chat.id].menu = "submitting_comment";
             } else {
               resetBot(ctx.chat.id);
             }
@@ -852,17 +901,22 @@ bot.hears("💬 ثبت نظر", (ctx) => {
 // showing all of the comments:
 bot.hears("📝 نظرات دانشجویان", (ctx) => {
   try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
     readBotInfo(1)
       .then((row) => {
         if (row) {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
-            if (menu == "prof_options") {
+            if (usersInfo[ctx.chat.id].menu == "prof_options") {
               // setting the options of the message:
               const options = {
                 reply_markup: {
@@ -873,8 +927,11 @@ bot.hears("📝 نظرات دانشجویان", (ctx) => {
 
               for (let i = 1; i < 51; i++) {
                 if (
-                  resultArray[0][`comment${i}`] != undefined &&
-                  resultArray[0][`comment${i}`].toString().length < 50
+                  usersInfo[ctx.chat.id].resultArray[0][`comment${i}`] !=
+                    undefined &&
+                  usersInfo[ctx.chat.id].resultArray[0][
+                    `comment${i}`
+                  ].toString().length < 50
                 ) {
                   if (i == 1) {
                     // sending the message
@@ -904,19 +961,21 @@ bot.hears("📝 نظرات دانشجویان", (ctx) => {
                       "#" +
                       i.toString() +
                       "#" +
-                      resultArray[0].id.toString(),
+                      usersInfo[ctx.chat.id].resultArray[0].id.toString(),
                     // Report#chatID#Comment_Number#ProfessorsID
                   },
                 ];
                 // sending the comments
                 bot.telegram.sendMessage(
                   ctx.chat.id,
-                  resultArray[0][`comment${i}`].toString(),
+                  usersInfo[ctx.chat.id].resultArray[0][
+                    `comment${i}`
+                  ].toString(),
                   { reply_markup: { inline_keyboard: [reportKeyboard] } }
                 );
               }
 
-              menu = "prof_options";
+              usersInfo[ctx.chat.id].menu = "prof_options";
             } else {
               resetBot(ctx.chat.id);
             }
@@ -934,17 +993,46 @@ bot.hears("📝 نظرات دانشجویان", (ctx) => {
   }
 });
 
+// Donate link:
+bot.hears("💳 حمایت", (ctx) => {
+  try {
+    if (usersInfo[ctx.chat.id] == undefined) {
+      usersInfo[ctx.chat.id] = {};
+    }
+    const options = {
+      reply_markup: { keyboard: mainKeyboard, resize_keyboard: true },
+      disable_web_page_preview: true,
+      parse_mode: "Markdown",
+    };
+    bot.telegram.sendMessage(
+      ctx.chat.id,
+      `ممنونم از اینکه تصمیم گرفتی ما رو حمایت کنی 😊
+برای حمایت روی [این لینک](https://zarinp.al/armanium) کلیک کن ❤️
+اگرم لینک باز نشد، بی‌زحمت VPNات رو خاموش کن 😍`,
+      options
+    );
+    usersInfo[ctx.chat.id].menu = "main_menu";
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 // report inline button handler
 bot.action(/Report#/g, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
   readBotInfo(1)
     .then((row) => {
       if (row) {
         // Access the values from the row
         const blackList = row.black_list;
 
-        if (!blackList.toString().includes(ctx.chat.id.toString())) {
-          ctx.reply("Go fuck yourself bitch!");
-          menu = "main_menu";
+        if (blackList.toString().includes(ctx.chat.id.toString())) {
+          ctx.reply(
+            "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+          );
+          usersInfo[ctx.chat.id].menu = "main_menu";
         } else {
           // defining the inline keyboard:
           const reportKeyboard = [
@@ -981,6 +1069,9 @@ bot.action(/Report#/g, (ctx) => {
 
 // delete inline button handler
 bot.action(/Delete#/g, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
   const comment_number = ctx.callbackQuery.data.toString().split("#")[1];
   const professorID = ctx.callbackQuery.data.toString().split("#")[2];
   updateCell(professorID, `comment${comment_number}`, "");
@@ -989,6 +1080,9 @@ bot.action(/Delete#/g, (ctx) => {
 
 // Block inline button handler
 bot.action(/Block#/g, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
   readBotInfo(1)
     .then((row) => {
       if (row) {
@@ -1016,6 +1110,9 @@ bot.action(/Block#/g, (ctx) => {
 
 // recieving any text:
 bot.hears(/.*/, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
   try {
     readBotInfo(1)
       .then((row) => {
@@ -1023,11 +1120,13 @@ bot.hears(/.*/, (ctx) => {
           // Access the values from the row
           const blackList = row.black_list;
 
-          if (!blackList.toString().includes(ctx.chat.id.toString())) {
-            ctx.reply("Go fuck yourself bitch!");
-            menu = "main_menu";
+          if (blackList.toString().includes(ctx.chat.id.toString())) {
+            ctx.reply(
+              "⚠️ متاسفانه شما بلاک شده‌اید و حق استفاده از ربات را ندارید."
+            );
+            usersInfo[ctx.chat.id].menu = "main_menu";
           } else {
-            if (menu == "search_menu") {
+            if (usersInfo[ctx.chat.id].menu == "search_menu") {
               if (ctx.message.text.length < 3) {
                 const options = {
                   reply_markup: {
@@ -1042,7 +1141,7 @@ bot.hears(/.*/, (ctx) => {
       لطفا یک اسم طولانی‌تر رو امتحان کن :)`,
                   options
                 );
-                menu = "search_menu";
+                usersInfo[ctx.chat.id].menu = "search_menu";
               } else if (/[a-zA-Z]/.test(ctx.message.text)) {
                 const options = {
                   reply_markup: {
@@ -1056,7 +1155,7 @@ bot.hears(/.*/, (ctx) => {
           لطفا اسم استادت رو فارسی وارد کن :)`,
                   options
                 );
-                menu = "search_menu";
+                usersInfo[ctx.chat.id].menu = "search_menu";
               } else if (/[0-9]/.test(ctx.message.text)) {
                 const options = {
                   reply_markup: {
@@ -1070,140 +1169,149 @@ bot.hears(/.*/, (ctx) => {
           لطفا اسم استادت رو دوباره وارد کن :)`,
                   options
                 );
-                menu = "search_menu";
+                usersInfo[ctx.chat.id].menu = "search_menu";
               } else {
-                searchByName(ctx.message.text, (err, resultArray) => {
+                searchByName(
+                  ctx.message.text,
+                  ctx.chat.id,
+                  (err, resultArray) => {
+                    if (err) {
+                      console.error("Error:", err);
+                      return;
+                    }
+
+                    if (resultArray.length > 0) {
+                      usersInfo[ctx.chat.id].resultsKeyboard = [];
+                      for (let i = 0; i < 11 && i < resultArray.length; i++) {
+                        usersInfo[ctx.chat.id].resultsKeyboard.push([
+                          resultArray[i].fullName.toString(),
+                        ]);
+                      }
+                      usersInfo[ctx.chat.id].resultsKeyboard.push([backButton]);
+
+                      const options = {
+                        reply_markup: {
+                          keyboard: usersInfo[ctx.chat.id].resultsKeyboard,
+                          resize_keyboard: true,
+                        },
+                      };
+                      bot.telegram.sendMessage(
+                        ctx.chat.id,
+                        `از بین ${replaceEnglishDigitsWithPersian(
+                          resultArray.length.toString()
+                        )} استاد یافت شده، استاد مورد نظرت رو انتخاب کن!`,
+                        options
+                      );
+                      usersInfo[ctx.chat.id].menu = "search_results";
+                    } else {
+                      const options = {
+                        reply_markup: {
+                          keyboard: backKeyboard,
+                          resize_keyboard: true,
+                        },
+                      };
+                      bot.telegram.sendMessage(
+                        ctx.chat.id,
+                        `متاسفانه نتونستم چنین استادی رو پیدا کنم 😔
+یه بار دیگه اسم استاد مد نظرت رو بهم میدی؟!`,
+                        options
+                      );
+                      usersInfo[ctx.chat.id].menu = "search_menu";
+                    }
+                  }
+                );
+              }
+            } else if (usersInfo[ctx.chat.id].menu == "search_results") {
+              searchByName(
+                ctx.message.text,
+                ctx.chat.id,
+                (err, resultArray) => {
                   if (err) {
                     console.error("Error:", err);
                     return;
                   }
+                  if (resultArray.length == 1) {
+                    // defining the caption
+                    let caption = `👤 [${resultArray[0].fullName.toString()}](https://profile.ut.ac.ir${resultArray[0].url.toString()})\n`;
 
-                  if (resultArray.length > 0) {
-                    resultsKeyboard = [];
-                    for (let i = 0; i < 11 && i < resultArray.length; i++) {
-                      resultsKeyboard.push([
-                        resultArray[i].fullName.toString(),
-                      ]);
+                    //// checking for email
+                    if (resultArray[0].email.toString().length > 3) {
+                      caption +=
+                        "\n✉️ ایمیل استاد:\n" +
+                        resultArray[0].email.toString() +
+                        "\n";
                     }
-                    resultsKeyboard.push([backButton]);
 
+                    //// checking for degree
+                    if (resultArray[0].degree.toString().length > 3) {
+                      caption +=
+                        "\n🎖 درجه: " + resultArray[0].degree.toString() + "\n";
+                    }
+
+                    //// checking for work place
+                    if (resultArray[0].organizations.toString().length > 3) {
+                      caption +=
+                        "\n🏢 محل کار: " +
+                        resultArray[0].organizations
+                          .toString()
+                          .replace(`[{"name":"`, "")
+                          .replace(`"}]`, "") +
+                        "\n";
+                    }
+
+                    //// checking for the rate:
+                    if (resultArray[0].rate_number != 0) {
+                      caption +=
+                        "\n⭐️نمره‌ی استاد از دید دانشجویان: " +
+                        resultArray[0].rate.toFixed(1).toString() +
+                        `/10 (${resultArray[0].rate_number.toString()} رای)\n`;
+                    }
+
+                    // adding the ID of the bot
+                    caption +=
+                      "\n[ربات اساتید دانشگاه تهران](t.me/UTeachersBot)";
+
+                    // setting the options
                     const options = {
+                      caption: caption,
+
                       reply_markup: {
-                        keyboard: resultsKeyboard,
+                        keyboard: profKeyboard,
                         resize_keyboard: true,
                       },
+                      parse_mode: "Markdown",
+                      disable_web_page_preview: true,
                     };
-                    bot.telegram.sendMessage(
+                    // sending the message
+                    bot.telegram.sendPhoto(
                       ctx.chat.id,
-                      `از بین ${replaceEnglishDigitsWithPersian(
-                        resultArray.length.toString()
-                      )} استاد یافت شده، استاد مورد نظرت رو انتخاب کن!`,
+                      {
+                        url:
+                          resultArray[0].image.length > 0
+                            ? "https://profile.ut.ac.ir" +
+                              resultArray[0].image.toString()
+                            : "https://upload.wikimedia.org/wikipedia/fa/thumb/f/fd/University_of_Tehran_logo.svg/800px-University_of_Tehran_logo.svg.png",
+                      },
                       options
                     );
-                    menu = "search_results";
+                    usersInfo[ctx.chat.id].menu = "prof_options";
                   } else {
                     const options = {
                       reply_markup: {
-                        keyboard: backKeyboard,
+                        keyboard: usersInfo[ctx.chat.id].resultsKeyboard,
                         resize_keyboard: true,
                       },
                     };
                     bot.telegram.sendMessage(
                       ctx.chat.id,
-                      `متاسفانه نتونستم چنین استادی رو پیدا کنم 😔
-یه بار دیگه اسم استاد مد نظرت رو بهم میدی؟!`,
+                      "از بین نتایج، استاد مورد نظرت رو انتخاب کن:",
                       options
                     );
-                    menu = "search_menu";
+                    usersInfo[ctx.chat.id].menu = "search_results";
                   }
-                });
-              }
-            } else if (menu == "search_results") {
-              searchByName(ctx.message.text, (err, resultArray) => {
-                if (err) {
-                  console.error("Error:", err);
-                  return;
                 }
-                if (resultArray.length == 1) {
-                  // defining the caption
-                  let caption = `👤 [${resultArray[0].fullName.toString()}](https://profile.ut.ac.ir${resultArray[0].url.toString()})\n`;
-
-                  //// checking for email
-                  if (resultArray[0].email.toString().length > 3) {
-                    caption +=
-                      "\n✉️ ایمیل استاد:\n" +
-                      resultArray[0].email.toString() +
-                      "\n";
-                  }
-
-                  //// checking for degree
-                  if (resultArray[0].degree.toString().length > 3) {
-                    caption +=
-                      "\n🎖 درجه: " + resultArray[0].degree.toString() + "\n";
-                  }
-
-                  //// checking for work place
-                  if (resultArray[0].organizations.toString().length > 3) {
-                    caption +=
-                      "\n🏢 محل کار: " +
-                      resultArray[0].organizations
-                        .toString()
-                        .replace(`[{"name":"`, "")
-                        .replace(`"}]`, "") +
-                      "\n";
-                  }
-
-                  //// checking for the rate:
-                  if (resultArray[0].rate_number != 0) {
-                    caption +=
-                      "\n⭐️نمره‌ی استاد از دید دانشجویان: " +
-                      resultArray[0].rate.toFixed(1).toString() +
-                      `/10 (${resultArray[0].rate_number.toString()} رای)\n`;
-                  }
-
-                  // adding the ID of the bot
-                  caption += "\n[ربات اساتید دانشگاه تهران](t.me/UTeachersBot)";
-
-                  // setting the options
-                  const options = {
-                    caption: caption,
-
-                    reply_markup: {
-                      keyboard: profKeyboard,
-                      resize_keyboard: true,
-                    },
-                    parse_mode: "Markdown",
-                    disable_web_page_preview: true,
-                  };
-                  // sending the message
-                  bot.telegram.sendPhoto(
-                    ctx.chat.id,
-                    {
-                      url:
-                        resultArray[0].image.length > 0
-                          ? "https://profile.ut.ac.ir" +
-                            resultArray[0].image.toString()
-                          : "https://upload.wikimedia.org/wikipedia/fa/thumb/f/fd/University_of_Tehran_logo.svg/800px-University_of_Tehran_logo.svg.png",
-                    },
-                    options
-                  );
-                  menu = "prof_options";
-                } else {
-                  const options = {
-                    reply_markup: {
-                      keyboard: resultsKeyboard,
-                      resize_keyboard: true,
-                    },
-                  };
-                  bot.telegram.sendMessage(
-                    ctx.chat.id,
-                    "از بین نتایج، استاد مورد نظرت رو انتخاب کن:",
-                    options
-                  );
-                  menu = "search_results";
-                }
-              });
-            } else if (menu == "numpad") {
+              );
+            } else if (usersInfo[ctx.chat.id].menu == "numpad") {
               if (/\D/.test(ctx.message.text)) {
                 const options = {
                   reply_markup: { keyboard: numpad, resize_keyboard: true },
@@ -1213,7 +1321,7 @@ bot.hears(/.*/, (ctx) => {
                   `باید یک عدد بین ۰ و ۱۰ وارد کنی!`,
                   options
                 );
-                menu = "numpad";
+                usersInfo[ctx.chat.id].menu = "numpad";
               } else if (
                 parseInt(ctx.message.text) > 10 ||
                 parseInt(ctx.message.text) < 0
@@ -1226,35 +1334,50 @@ bot.hears(/.*/, (ctx) => {
                   `باید یک عدد بین ۰ و ۱۰ وارد کنی!`,
                   options
                 );
-                menu = "numpad";
+                usersInfo[ctx.chat.id].menu = "numpad";
               } else {
                 // Calculating the new rate:
                 let rate =
-                  parseFloat(resultArray[0].rate_number) *
-                    parseFloat(resultArray[0].rate) +
+                  parseFloat(
+                    usersInfo[ctx.chat.id].resultArray[0].rate_number
+                  ) *
+                    parseFloat(usersInfo[ctx.chat.id].resultArray[0].rate) +
                   parseFloat(ctx.message.text);
-                rate = rate / (parseFloat(resultArray[0].rate_number) + 1);
+                rate =
+                  rate /
+                  (parseFloat(
+                    usersInfo[ctx.chat.id].resultArray[0].rate_number
+                  ) +
+                    1);
                 // updating the database with new values
-                updateCell(resultArray[0].id, "rate", rate);
                 updateCell(
-                  resultArray[0].id,
-                  "rate_number",
-                  resultArray[0].rate_number + 1
+                  usersInfo[ctx.chat.id].resultArray[0].id,
+                  "rate",
+                  rate
                 );
                 updateCell(
-                  resultArray[0].id,
+                  usersInfo[ctx.chat.id].resultArray[0].id,
+                  "rate_number",
+                  usersInfo[ctx.chat.id].resultArray[0].rate_number + 1
+                );
+                updateCell(
+                  usersInfo[ctx.chat.id].resultArray[0].id,
                   "rate_id",
-                  resultArray[0].rate_id.toString() +
+                  usersInfo[ctx.chat.id].resultArray[0].rate_id.toString() +
                     ctx.chat.id.toString() +
                     "#"
                 );
                 // updating the resultArray:
-                searchByName(resultArray[0].fullName, (err, resultArray) => {
-                  if (err) {
-                    console.error("Error:", err);
-                    return;
+                searchByName(
+                  usersInfo[ctx.chat.id].resultArray[0].fullName,
+                  ctx.chat.id,
+                  (err, resultArray) => {
+                    if (err) {
+                      console.error("Error:", err);
+                      return;
+                    }
                   }
-                });
+                );
                 // setting the options of the message:
                 const options = {
                   reply_markup: {
@@ -1268,9 +1391,9 @@ bot.hears(/.*/, (ctx) => {
                   "نمره‌دهی با موفقیت انجام شد.",
                   options
                 );
-                menu = "prof_options";
+                usersInfo[ctx.chat.id].menu = "prof_options";
               }
-            } else if (menu == "submitting_comment") {
+            } else if (usersInfo[ctx.chat.id].menu == "submitting_comment") {
               if (ctx.message.text.length < 50) {
                 const options = {
                   reply_markup: {
@@ -1283,7 +1406,7 @@ bot.hears(/.*/, (ctx) => {
                   `نظرت نمی‌تونه کمتر از 50 کاراکتر باشه...`,
                   options
                 );
-                menu = "submitting_comment";
+                usersInfo[ctx.chat.id].menu = "submitting_comment";
               } else if (/[a-zA-Z]/.test(ctx.message.text)) {
                 const options = {
                   reply_markup: {
@@ -1296,7 +1419,7 @@ bot.hears(/.*/, (ctx) => {
                   `نظرت نمیتونه شامل حروف انگلیسی باشه. لطفاً نظرت رو تماماً فارسی تایپ کن :)`,
                   options
                 );
-                menu = "submitting_comment";
+                usersInfo[ctx.chat.id].menu = "submitting_comment";
               } else if (containsAbusiveWords(ctx.message.text.toString())) {
                 const options = {
                   reply_markup: {
@@ -1311,36 +1434,57 @@ bot.hears(/.*/, (ctx) => {
 لطفاً این‌دفعه مودبانه نظرت رو بهم بگو...`,
                   options
                 );
-                menu = "submitting_comment";
+                usersInfo[ctx.chat.id].menu = "submitting_comment";
               } else {
                 // updating the database with new values
                 for (let i = 1; i < 51; i++) {
-                  if (resultArray[0][`comment${i}`].toString().length < 50) {
+                  if (
+                    usersInfo[ctx.chat.id].resultArray[0][
+                      `comment${i}`
+                    ].toString().length < 50
+                  ) {
                     updateCell(
-                      resultArray[0].id,
+                      usersInfo[ctx.chat.id].resultArray[0].id,
                       `comment${i}`,
                       ctx.message.text.toString()
                     );
                     updateCell(
-                      resultArray[0].id,
+                      usersInfo[ctx.chat.id].resultArray[0].id,
                       "comment_id",
-                      resultArray[0].comment_id.toString() +
+                      usersInfo[
+                        ctx.chat.id
+                      ].resultArray[0].comment_id.toString() +
                         ctx.chat.id.toString() +
                         "#"
                     );
                     // defining the caption
-                    let postText = `👤 [${resultArray[0].fullName.toString()}](https://profile.ut.ac.ir${resultArray[0].url.toString()})\n`;
+                    let postText = `👤 [${usersInfo[
+                      ctx.chat.id
+                    ].resultArray[0].fullName.toString()}](https://profile.ut.ac.ir${usersInfo[
+                      ctx.chat.id
+                    ].resultArray[0].url.toString()})\n`;
                     //// checking for degree
-                    if (resultArray[0].degree.toString().length > 3) {
+                    if (
+                      usersInfo[ctx.chat.id].resultArray[0].degree.toString()
+                        .length > 3
+                    ) {
                       postText +=
-                        "\n🎖 درجه: " + resultArray[0].degree.toString() + "\n";
+                        "\n🎖 درجه: " +
+                        usersInfo[
+                          ctx.chat.id
+                        ].resultArray[0].degree.toString() +
+                        "\n";
                     }
 
                     //// checking for work place
-                    if (resultArray[0].organizations.toString().length > 3) {
+                    if (
+                      usersInfo[
+                        ctx.chat.id
+                      ].resultArray[0].organizations.toString().length > 3
+                    ) {
                       postText +=
                         "\n🏢 محل کار: " +
-                        resultArray[0].organizations
+                        usersInfo[ctx.chat.id].resultArray[0].organizations
                           .toString()
                           .replace(`[{"name":"`, "")
                           .replace(`"}]`, "") +
@@ -1363,7 +1507,8 @@ ${ctx.message.text.toString()}
                     );
                     // updating the resultArray:
                     searchByName(
-                      resultArray[0].fullName,
+                      usersInfo[ctx.chat.id].resultArray[0].fullName,
+                      ctx.chat.id,
                       (err, resultArray) => {
                         if (err) {
                           console.error("Error:", err);
@@ -1389,7 +1534,7 @@ ${ctx.message.text.toString()}
                   options
                 );
 
-                menu = "prof_options";
+                usersInfo[ctx.chat.id].menu = "prof_options";
               }
             } else {
               resetBot(ctx.chat.id);

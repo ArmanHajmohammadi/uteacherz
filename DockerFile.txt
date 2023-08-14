@@ -1,0 +1,17 @@
+FROM hub.hamdocker.ir/node:16 as builder
+ARG NODE_OPTIONS
+WORKDIR /app 
+COPY bot.js .
+COPY package.json package-lock.json ./
+COPY ./Data/uteacherz.db ./Data/uteacherz.db
+RUN npm install 
+COPY . .
+RUN npm run build
+
+
+FROM hub.hamdocker.ir/node:16 as runner
+WORKDIR /app
+ENV NODE_ENV production
+COPY --from=builder /app/ ./
+
+CMD ["npm", "start"]
