@@ -1,20 +1,15 @@
-# Use an official Node.js runtime as the base image
-FROM node:14
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the source code to the working directory
+FROM hub.hamdocker.ir/node:16 as builder
+ARG NODE_OPTIONS
+WORKDIR /app 
+COPY package.json package-lock.json ./
+RUN npm install 
 COPY . .
+RUN npm run build
 
-# Expose the port your bot listens on (replace 3000 with the actual port number)
-EXPOSE 3000
 
-# Run the bot
-CMD [ "node", "bot.js" ]
+FROM hub.hamdocker.ir/node:16 as runner
+WORKDIR /app
+ENV NODE_ENV production
+COPY --from=builder /app/ ./
+
+CMD ["npm", "start"]
