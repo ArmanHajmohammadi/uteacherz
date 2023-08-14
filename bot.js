@@ -1490,7 +1490,7 @@ bot.hears(/.*/, (ctx) => {
                           .replace(`"}]`, "") +
                         "\n";
                     }
-                    postText = `✍️ نظر: 
+                    postText += `✍️ نظر: 
 ${ctx.message.text.toString()}
 
 @UTGroups`;
