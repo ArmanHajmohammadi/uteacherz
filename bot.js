@@ -1469,7 +1469,7 @@ bot.hears(/.*/, (ctx) => {
                         .length > 3
                     ) {
                       postText +=
-                        "\n🎖 درجه: " +
+                        "🎖 درجه: " +
                         usersInfo[
                           ctx.chat.id
                         ].resultArray[0].degree.toString() +
@@ -1483,16 +1483,14 @@ bot.hears(/.*/, (ctx) => {
                       ].resultArray[0].organizations.toString().length > 3
                     ) {
                       postText +=
-                        "\n🏢 محل کار: " +
+                        "🏢 محل کار: " +
                         usersInfo[ctx.chat.id].resultArray[0].organizations
                           .toString()
                           .replace(`[{"name":"`, "")
                           .replace(`"}]`, "") +
-                        "\n";
+                        "\n\n";
                     }
-                    postText =
-                      postText +
-                      `✍️ نظر: 
+                    postText += `✍️ نظر: 
 ${ctx.message.text.toString()}
 
 @UTGroups`;
