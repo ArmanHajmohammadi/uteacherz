@@ -6,7 +6,7 @@ RUN apt-get update
 RUN apt install -y nodejs
 RUN npm install 
 COPY . .
-RUN node ./bot.js
+RUN node bot.js
 
 
 FROM hub.hamdocker.ir/node:16 as runner
