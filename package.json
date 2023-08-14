@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node botjs",
+    "build": "your-build-command"
   },
-  "author": "",
+  "author": "Arman Hajmohammadi",
   "license": "ISC",
   "dependencies": {
     "node-telegram-bot-api": "^0.61.0",
