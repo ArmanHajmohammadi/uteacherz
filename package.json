@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node botjs",
-    "build": "your-build-command"
+    "build": "npm run compile"
   },
   "author": "Arman Hajmohammadi",
   "license": "ISC",
