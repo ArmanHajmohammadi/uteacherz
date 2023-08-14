@@ -1,26 +1,17 @@
-# Builder stage
-FROM hub.hamdocker.ir/node:16 as builder
-ARG NODE_OPTIONS
-WORKDIR /app 
-COPY package.json package-lock.json ./
-RUN npm install 
-COPY . .
-# Install SQLite3 library and tools
-RUN apt-get update && apt-get install -y sqlite3
-RUN npm run build
+# Use an official Node.js runtime as the base image
+FROM node:14
 
+# Set the working directory inside the container
+WORKDIR /usr/src/app
 
-# Set the environment variable for SQLite3
-ENV SQLITE_DB_PATH="/app/Data/uteacherz.db"
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
 
-# Expose the required port for the bot
-EXPOSE 3000
+# Install dependencies
+RUN npm install
 
-# Runner stage
-FROM hub.hamdocker.ir/node:16 as runner
-WORKDIR /app
-ENV NODE_ENV production
-COPY --from=builder /app/ ./
+# Copy the bot.js script to the working directory
+COPY bot.js .
 
-# Start the bot application
-CMD [ "node", "bot.js" ]
+# Specify the command to run your bot.js script
+CMD ["node", "bot.js"]

@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node botjs",
-    "build": "npm run compile"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Arman Hajmohammadi",
+  "author": "",
   "license": "ISC",
   "dependencies": {
     "node-telegram-bot-api": "^0.61.0",
