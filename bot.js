@@ -186,6 +186,7 @@ function containsAbusiveWords(text) {
   ];
   for (const word of abusiveWords) {
     if (text.toLowerCase().includes(word)) {
+      console.log("The comment containes abusive word: " + word);
       return true;
     }
   }
