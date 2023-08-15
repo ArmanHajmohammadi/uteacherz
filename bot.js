@@ -382,6 +382,11 @@ bot.start((ctx) => {
                     options
                   );
 
+                  console.log(
+                    ctx.from.username
+                      ? ctx.from.username.toString() + " Started the bot"
+                      : ctx.chat.id.toString() + " Started the bot."
+                  );
                   usersInfo[ctx.chat.id].menu = "main_menu";
                 } else {
                   console.log("Row not found in the bot_info table.");
@@ -440,6 +445,11 @@ bot.help((ctx) => {
 از طریق این گزینه می‌تونی به فهرست کاملی از اطلاعات مهم و مطالب آموزشی و تجارب دانشجویان سال‌های گذشته، مثل شرایط کهاد، دووجهی، انتقالی و تغییر رشته و... دسترسی پیدا کنی.`,
               options
             );
+            console.log(
+              ctx.from.username
+                ? ctx.from.username.toString() + " got help"
+                : ctx.chat.id.toString() + " got help."
+            );
             usersInfo[ctx.chat.id].menu = "main_menu";
           }
         } else {
@@ -480,6 +490,11 @@ bot.hears(searchButton, (ctx) => {
               ctx.chat.id,
               `اسم استاد مدنظرت چیه؟!`,
               options
+            );
+            console.log(
+              ctx.from.username
+                ? ctx.from.username.toString() + " wants to search."
+                : ctx.chat.id.toString() + " wants to search."
             );
             usersInfo[ctx.chat.id].menu = "search_menu";
           }
@@ -558,6 +573,11 @@ bot.hears(UTPostsButton, (ctx) => {
 🔸 [نرم افزار های اسکن و ادغام PDF](https://t.me/UT_Guide/36)
   `,
               options
+            );
+            console.log(
+              ctx.from.username
+                ? ctx.from.username.toString() + " got the posts index."
+                : ctx.chat.id.toString() + " got the posts index."
             );
             usersInfo[ctx.chat.id].menu = "main_menu";
           }
@@ -652,6 +672,11 @@ bot.hears(UTSocietyButton, (ctx) => {
 🔸 [كانال خوابگاه دانشگاه](https://t.me/khabgahut)
   `,
               options
+            );
+            console.log(
+              ctx.from.username
+                ? ctx.from.username.toString() + " got the channels list."
+                : ctx.chat.id.toString() + " got the channels list."
             );
             usersInfo[ctx.chat.id].menu = "main_menu";
           }
@@ -754,7 +779,11 @@ bot.hears(backButton, (ctx) => {
                 usersInfo[ctx.chat.id].menu = "main_menu";
                 break;
             }
-
+            console.log(
+              ctx.from.username
+                ? ctx.from.username.toString() + " pressed the back button."
+                : ctx.chat.id.toString() + " pressed the back button."
+            );
             bot.telegram.sendMessage(ctx.chat.id, text, options);
           }
         } else {
@@ -811,6 +840,11 @@ bot.hears("🎖 نمره‌دهی به استاد", (ctx) => {
                 ctx.chat.id,
                 `به این استاد از ۰ تا ۱۰ چند میدی؟`,
                 options
+              );
+              console.log(
+                ctx.from.username
+                  ? ctx.from.username.toString() + " wants to rate a professor"
+                  : ctx.chat.id.toString() + " wants to rate a professor"
               );
               usersInfo[ctx.chat.id].menu = "numpad";
             } else {
@@ -877,6 +911,11 @@ bot.hears("💬 ثبت نظر", (ctx) => {
                 ctx.chat.id,
                 `نظرت در مورد این استاد چیه؟!`,
                 options
+              );
+              console.log(
+                ctx.from.username
+                  ? ctx.from.username.toString() + " wants to submit a comment."
+                  : ctx.chat.id.toString() + " wants to submit a comment."
               );
               usersInfo[ctx.chat.id].menu = "submitting_comment";
             } else {
@@ -1008,6 +1047,11 @@ bot.hears("💳 حمایت", (ctx) => {
 برای حمایت روی [این لینک](https://zarinp.al/armanium) کلیک کن ❤️
 اگرم لینک باز نشد، بی‌زحمت VPNات رو خاموش کن 😍`,
       options
+    );
+    console.log(
+      ctx.from.username
+        ? ctx.from.username.toString() + " wants to donate"
+        : ctx.chat.id.toString() + " wants to donate"
     );
     usersInfo[ctx.chat.id].menu = "main_menu";
   } catch (error) {
@@ -1200,6 +1244,13 @@ bot.hears(/.*/, (ctx) => {
                         )} استاد یافت شده، استاد مورد نظرت رو انتخاب کن!`,
                         options
                       );
+                      console.log(
+                        ctx.from.username
+                          ? ctx.from.username.toString() +
+                              " searched for a professor"
+                          : ctx.chat.id.toString() +
+                              " searchedd for a professor"
+                      );
                       usersInfo[ctx.chat.id].menu = "search_results";
                     } else {
                       const options = {
@@ -1291,6 +1342,13 @@ bot.hears(/.*/, (ctx) => {
                             : "https://upload.wikimedia.org/wikipedia/fa/thumb/f/fd/University_of_Tehran_logo.svg/800px-University_of_Tehran_logo.svg.png",
                       },
                       options
+                    );
+                    console.log(
+                      ctx.from.username
+                        ? ctx.from.username.toString() +
+                            " got the results of his search."
+                        : ctx.chat.id.toString() +
+                            " got the results of his search."
                     );
                     usersInfo[ctx.chat.id].menu = "prof_options";
                   } else {
@@ -1388,6 +1446,11 @@ bot.hears(/.*/, (ctx) => {
                   ctx.chat.id,
                   "نمره‌دهی با موفقیت انجام شد.",
                   options
+                );
+                console.log(
+                  ctx.from.username
+                    ? ctx.from.username.toString() + " rated a professor."
+                    : ctx.chat.id.toString() + " rated a professor."
                 );
                 usersInfo[ctx.chat.id].menu = "prof_options";
               }
@@ -1502,6 +1565,11 @@ ${ctx.message.text.toString()}
                       "@uteacherz",
                       postText,
                       postOptions
+                    );
+                    console.log(
+                      ctx.from.username
+                        ? ctx.from.username.toString() + " submitted a comment."
+                        : ctx.chat.id.toString() + " submitted a comment"
                     );
                     // updating the resultArray:
                     searchByName(
