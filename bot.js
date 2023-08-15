@@ -178,11 +178,8 @@ function containsAbusiveWords(text) {
     "جاکش",
     "گوه",
     "مادرخراب",
-    "فاک",
-    "ریدن",
-    "ریده",
     "fuck",
-    "ریدم",
+    "کصبیبی",
   ];
   for (const word of abusiveWords) {
     if (text.toLowerCase().includes(word)) {
