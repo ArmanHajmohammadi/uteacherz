@@ -6,8 +6,7 @@ const { Telegraf, Markup } = require("telegraf");
 const sqlite3 = require("sqlite3").verbose();
 
 // defining the bot and give it the token:
-// const token = process.env.BOT_TOKEN;
-const token = "6591935311:AAGrX_PgnpqmHpeSYytXGt4cHPpjwc_1e54";
+const token = process.env.BOT_TOKEN;
 const bot = new Telegraf(token);
 
 // holding the current circumstance of the keyboard and menu:
