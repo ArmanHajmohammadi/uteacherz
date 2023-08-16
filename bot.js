@@ -1335,11 +1335,10 @@ bot.hears(/.*/, (ctx) => {
                     bot.telegram.sendPhoto(
                       ctx.chat.id,
                       {
-                        url:
-                          resultArray[0].image.length > 0
-                            ? "https://profile.ut.ac.ir" +
-                              resultArray[0].image.toString()
-                            : "https://upload.wikimedia.org/wikipedia/fa/thumb/f/fd/University_of_Tehran_logo.svg/800px-University_of_Tehran_logo.svg.png",
+                        source:
+                          "./Data/photos/" +
+                          resultArray[0].id.toString() +
+                          ".jpg",
                       },
                       options
                     );
