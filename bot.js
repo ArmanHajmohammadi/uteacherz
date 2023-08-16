@@ -9,6 +9,10 @@ const sqlite3 = require("sqlite3").verbose();
 const token = process.env.BOT_TOKEN;
 const bot = new Telegraf(token);
 
+// getting date and time:
+const moment = require("moment-timezone");
+const tehranTime = moment.tz("Asia/Tehran");
+
 // holding the current circumstance of the keyboard and menu:
 //   circumstances:
 //     main_menu
@@ -1572,6 +1576,17 @@ ${ctx.message.text.toString()}
                         ? ctx.from.username.toString() + " submitted a comment."
                         : ctx.chat.id.toString() + " submitted a comment"
                     );
+                    // sending db backup to my own pv:
+                    const currentDateAndTimeInTehran = tehranTime.format(
+                      "YYYY-MM-DD HH:mm:ss"
+                    );
+                    const date_time =
+                      "Backup file generated at:\n" +
+                      currentDateAndTimeInTehran.toString();
+                    bot.telegram.sendDocument(6116052382, {
+                      source: "./Data/uteacherz.db",
+                      date_time,
+                    });
                     // updating the resultArray:
                     searchByName(
                       usersInfo[ctx.chat.id].resultArray[0].fullName,
