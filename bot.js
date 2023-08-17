@@ -1583,10 +1583,13 @@ ${ctx.message.text.toString()}
                     const date_time =
                       "Backup file generated at:\n" +
                       currentDateAndTimeInTehran.toString();
-                    bot.telegram.sendDocument(6116052382, {
-                      source: "./Data/uteacherz.db",
-                      date_time,
-                    });
+                    bot.telegram.sendDocument(
+                      6116052382,
+                      {
+                        source: "./Data/uteacherz.db",
+                      },
+                      { caption: date_time }
+                    );
                     // updating the resultArray:
                     searchByName(
                       usersInfo[ctx.chat.id].resultArray[0].fullName,
