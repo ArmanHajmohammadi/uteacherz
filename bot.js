@@ -1567,11 +1567,7 @@ ${ctx.message.text.toString()}
                       postText,
                       postOptions
                     );
-                    console.log(
-                      ctx.from.username
-                        ? ctx.from.username.toString() + " submitted a comment."
-                        : ctx.chat.id.toString() + " submitted a comment"
-                    );
+                    logger(ctx, "Submitted a comment.");
                     // updating the resultArray:
                     searchByName(
                       usersInfo[ctx.chat.id].resultArray[0].fullName,
