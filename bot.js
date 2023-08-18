@@ -1465,7 +1465,7 @@ bot.hears(/.*/, (ctx) => {
                 };
                 bot.telegram.sendMessage(
                   ctx.chat.id,
-                  `نظرت نمی‌تونه کمتر از 50 کاراکتر باشه...`,
+                  `نظرت نمی‌تونه کمتر از ۵۰ کاراکتر باشه...`,
                   options
                 );
                 usersInfo[ctx.chat.id].menu = "submitting_comment";
