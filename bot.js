@@ -38,10 +38,10 @@ const mainKeyboard = [
 const backKeyboard = [[backButton]];
 
 const numpad = [
-  ["8", "9", "10"],
-  ["5", "6", "7"],
-  ["2", "3", "4"],
-  [backButton, "0", "1"], // Spanning 2 columns
+  ["۸", "۹", "۱۰"],
+  ["۵", "۶", "۷"],
+  ["۲", "۳", "۴"],
+  [backButton, "۰", "۱"], // Spanning 2 columns
 ];
 
 const profKeyboard = [
