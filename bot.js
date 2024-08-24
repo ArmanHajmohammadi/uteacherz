@@ -1122,6 +1122,31 @@ bot.action(/Delete#/g, (ctx) => {
   ctx.editMessageText("نظر با موفقیت حذف شد.");
 });
 
+bot.action(/Post#/g, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
+     const postOptions = {
+                      disable_web_page_preview: true,
+                      parse_mode: "Markdown",
+                    };
+                    bot.telegram.sendMessage(
+                      "@uteacherz",
+                      ctx.message.text.toString(),
+                      postOptions
+                    );
+                    ctx.editMessageText("پست ارسال شد.");
+  
+});
+
+bot.action(/NPost#/g, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
+
+                    ctx.editMessageText("نظر حذف شد.");
+  
+});
 // Block inline button handler
 bot.action(/Block#/g, (ctx) => {
   if (usersInfo[ctx.chat.id] == undefined) {
@@ -1505,11 +1530,7 @@ bot.hears(/.*/, (ctx) => {
                       `comment${i}`
                     ].toString().length < 50
                   ) {
-                    updateCell(
-                      usersInfo[ctx.chat.id].resultArray[0].id,
-                      `comment${i}`,
-                      ctx.message.text.toString()
-                    );
+                    
                     updateCell(
                       usersInfo[ctx.chat.id].resultArray[0].id,
                       "comment_id",
@@ -1558,15 +1579,40 @@ ${ctx.message.text.toString()}
 @UTGroups`;
 
                     // reply:
-                    const postOptions = {
-                      disable_web_page_preview: true,
-                      parse_mode: "Markdown",
-                    };
-                    bot.telegram.sendMessage(
-                      "@uteacherz",
-                      postText,
-                      postOptions
-                    );
+
+                    // const postOptions = {
+                    //   disable_web_page_preview: true,
+                    //   parse_mode: "Markdown",
+                    // };
+                    // bot.telegram.sendMessage(
+                    //   "@uteacherz",
+                    //   postText,
+                    //   postOptions
+                    // );
+
+                    // defining the inline keyboard:
+          const sendPost = [
+            {
+              text: "❌",
+              callback_data:
+                "NPost#" +
+                ctx.callbackQuery.data.toString().split("#")[2] +
+                "#" +
+                ctx.callbackQuery.data.toString().split("#")[3],
+            },
+            {
+              text: "✅",
+              callback_data:
+                "Post#" + ctx.callbackQuery.data.toString().split("#")[1],
+            },
+          ];
+          // editting the message
+
+          // sending the comments
+          bot.telegram.sendMessage(6116052382, postText, {
+            reply_markup: { inline_keyboard: [sendPost] },
+          });
+                    
                     logger(ctx, "Submitted a comment.");
                     // updating the resultArray:
                     searchByName(
@@ -1593,7 +1639,7 @@ ${ctx.message.text.toString()}
                 // sending the message
                 bot.telegram.sendMessage(
                   ctx.chat.id,
-                  `نظر شما با موفقیت ثبت شد.`,
+                  `نظر شما با موفقیت ثبت شد. لازم به ذکر است، نظر شما پس از تایید ادمین در کانال نمایش داده خواهد شد.`,
                   options
                 );
 
