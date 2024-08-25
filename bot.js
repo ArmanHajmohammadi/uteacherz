@@ -1121,7 +1121,14 @@ bot.action(/Delete#/g, (ctx) => {
   updateCell(professorID, `comment${comment_number}`, "");
   ctx.editMessageText("نظر با موفقیت حذف شد.");
 });
+bot.action(/NPost#/g, (ctx) => {
+  if (usersInfo[ctx.chat.id] == undefined) {
+    usersInfo[ctx.chat.id] = {};
+  }
 
+                    ctx.editMessageText("نظر حذف شد.");
+  
+});
 bot.action(/Post#/g, (ctx) => {
   if (usersInfo[ctx.chat.id] == undefined) {
     usersInfo[ctx.chat.id] = {};
@@ -1132,21 +1139,14 @@ bot.action(/Post#/g, (ctx) => {
                     };
                     bot.telegram.sendMessage(
                       "@uteacherz",
-                      ctx.message.text.toString(),
+                      ctx.callbackQuery.message.text.toString(),
                       postOptions
                     );
                     ctx.editMessageText("پست ارسال شد.");
   
 });
 
-bot.action(/NPost#/g, (ctx) => {
-  if (usersInfo[ctx.chat.id] == undefined) {
-    usersInfo[ctx.chat.id] = {};
-  }
 
-                    ctx.editMessageText("نظر حذف شد.");
-  
-});
 // Block inline button handler
 bot.action(/Block#/g, (ctx) => {
   if (usersInfo[ctx.chat.id] == undefined) {
@@ -1595,15 +1595,12 @@ ${ctx.message.text.toString()}
             {
               text: "❌",
               callback_data:
-                "NPost#" +
-                ctx.callbackQuery.data.toString().split("#")[2] +
-                "#" +
-                ctx.callbackQuery.data.toString().split("#")[3],
+                "NPost#",
             },
             {
               text: "✅",
               callback_data:
-                "Post#" + ctx.callbackQuery.data.toString().split("#")[1],
+                "Post#",
             },
           ];
           // editting the message
@@ -1613,7 +1610,7 @@ ${ctx.message.text.toString()}
             reply_markup: { inline_keyboard: [sendPost] },
           });
                     
-                    logger(ctx, "Submitted a comment.");
+                console.log(ctx, "Submitted a comment.");
                     // updating the resultArray:
                     searchByName(
                       usersInfo[ctx.chat.id].resultArray[0].fullName,
