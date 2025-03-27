@@ -392,7 +392,7 @@ bot.start((ctx) => {
 
                   console.log(
                     ctx.from.username
-                      ? ctx.from.id.toString() + " Started the bot"
+                      ? ctx.from.username.toString() + " Started the bot"
                       : ctx.chat.id.toString() + " Started the bot."
                   );
                   usersInfo[ctx.chat.id].menu = "main_menu";
