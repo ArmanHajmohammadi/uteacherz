@@ -7,6 +7,7 @@ const sqlite3 = require("sqlite3").verbose();
 
 // defining the bot and give it the token:
 const token = process.env.BOT_TOKEN;
+const adminID = 7413481523;
 const bot = new Telegraf(token);
 
 // holding the current circumstance of the keyboard and menu:
@@ -386,7 +387,7 @@ bot.start((ctx) => {
 
                   console.log(
                     ctx.from.username
-                      ? ctx.from.username.toString() + " Started the bot"
+                      ? ctx.from.id.toString() + " Started the bot"
                       : ctx.chat.id.toString() + " Started the bot."
                   );
                   usersInfo[ctx.chat.id].menu = "main_menu";
@@ -1097,7 +1098,7 @@ bot.action(/Report#/g, (ctx) => {
           // editting the message
           ctx.editMessageText("گزارش شما ثبت شد.");
           // sending the comments
-          bot.telegram.sendMessage(6116052382, ctx.callbackQuery.message.text, {
+          bot.telegram.sendMessage(adminID, ctx.callbackQuery.message.text, {
             reply_markup: { inline_keyboard: [reportKeyboard] },
           });
         }
@@ -1606,7 +1607,7 @@ ${ctx.message.text.toString()}
           // editting the message
 
           // sending the comments
-          bot.telegram.sendMessage(6116052382, postText, {
+          bot.telegram.sendMessage(adminID, postText, {
             reply_markup: { inline_keyboard: [sendPost] },
           });
                     
