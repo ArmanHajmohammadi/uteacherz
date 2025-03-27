@@ -18,6 +18,9 @@ const bot = new Telegraf(token);
 //     prof_options
 //     numpad
 //     submitting_comment
+//     professor_name (1)
+//     course_name (2)
+//     new_comment (3)
 let usersInfo = {
   chatID: { menu: "main_menu", resultArray: [], resultsKeyboard: [] },
 };
@@ -37,6 +40,8 @@ const mainKeyboard = [
 ];
 
 const backKeyboard = [[backButton]];
+
+const E404Keyboard = [["🖊 ثبت نظر برای استاد جدید"], [backButton]];
 
 const numpad = [
   ["8", "9", "10"],
@@ -771,6 +776,39 @@ bot.hears(backButton, (ctx) => {
                 text = "چه کاری میخوای انجام بدی؟";
                 usersInfo[ctx.chat.id].menu = "prof_options";
                 break;
+
+              case "professor_name":
+                 options = {
+                  reply_markup: { keyboard: backKeyboard, resize_keyboard: true },
+                };
+                text = `اسم استاد مدنظرت چیه؟!`;
+
+                usersInfo[ctx.chat.id].menu = "search_menu";
+                break;
+                
+              case "course_name":
+
+               options = {
+                reply_markup: {
+                  keyboard: backKeyboard,
+                  resize_keyboard: true,
+                },
+              };
+              text = `نام و نام خانوادگی استادت چیه؟ (مثلاً عباس محمدآبادی پشت‌کوهی)`;
+                usersInfo[ctx.chat.id].menu = "professor_name";
+                break;
+
+              case "new_comment":
+                  options = {
+                  reply_markup: {
+                    keyboard: backKeyboard,
+                    resize_keyboard: true,
+                  },
+                };
+                text=`خیلی هم عالی! حالا این استادت چی درس میده؟`;
+                usersInfo[ctx.chat.id].menu = "course_name";
+                  break;
+
               default:
                 options = {
                   reply_markup: {
@@ -1240,6 +1278,19 @@ bot.hears(/.*/, (ctx) => {
                   options
                 );
                 usersInfo[ctx.chat.id].menu = "search_menu";
+              } else if (ctx.message.text=="🖊 ثبت نظر برای استاد جدید") {
+                const options = {
+                  reply_markup: {
+                    keyboard: backKeyboard,
+                    resize_keyboard: true,
+                  },
+                };
+                bot.telegram.sendMessage(
+                  ctx.chat.id,
+                  `نام و نام خانوادگی استادت چیه؟ (مثلاً عباس محمدآبادی پشت‌کوهی)`,
+                  options
+                );
+                usersInfo[ctx.chat.id].menu = "professor_name";
               } else {
                 searchByName(
                   ctx.message.text,
@@ -1283,14 +1334,14 @@ bot.hears(/.*/, (ctx) => {
                     } else {
                       const options = {
                         reply_markup: {
-                          keyboard: backKeyboard,
+                          keyboard: E404Keyboard,
                           resize_keyboard: true,
                         },
                       };
                       bot.telegram.sendMessage(
                         ctx.chat.id,
-                        `متاسفانه نتونستم چنین استادی رو پیدا کنم 😔
-یه بار دیگه اسم استاد مد نظرت رو بهم میدی؟!`,
+                        `فکر کنم استاد مد نظرت، عضو هیئت علمی نیست! برای همین نتونستم اطلاعاتی ازش پیدا کنم 😅
+عوضش می‌تونی اسم و مشخصاتش رو بهم بگی تا در موردش نظرت رو ثبت کنم ✅`,
                         options
                       );
                       usersInfo[ctx.chat.id].menu = "search_menu";
@@ -1643,7 +1694,189 @@ ${ctx.message.text.toString()}
 
                 usersInfo[ctx.chat.id].menu = "prof_options";
               }
-            } else {
+            }else if (usersInfo[ctx.chat.id].menu == "professor_name") {
+              if (ctx.message.text.length < 3) {
+                const options = {
+                  reply_markup: {
+                    keyboard: backKeyboard,
+                    resize_keyboard: true,
+                  },
+                };
+                bot.telegram.sendMessage(
+                  ctx.chat.id,
+                  `
+      اسم استاد نمی‌تونه کمتر از ۳ حرف باشه!
+      لطفا یک اسم طولانی‌تر رو امتحان کن :)`,
+                  options
+                );
+                usersInfo[ctx.chat.id].menu = "professor_name";
+              } else if (/[a-zA-Z]/.test(ctx.message.text)) {
+                const options = {
+                  reply_markup: {
+                    keyboard: backKeyboard,
+                    resize_keyboard: true,
+                  },
+                };
+                bot.telegram.sendMessage(
+                  ctx.chat.id,
+                  `اسم استاد نمیتونه شامل حرف انگلیسی باشه.
+          لطفا اسم استادت رو فارسی وارد کن :)`,
+                  options
+                );
+                usersInfo[ctx.chat.id].menu = "professor_name";
+              } else if (/[0-9]/.test(ctx.message.text)) {
+                const options = {
+                  reply_markup: {
+                    keyboard: backKeyboard,
+                    resize_keyboard: true,
+                  },
+                };
+                bot.telegram.sendMessage(
+                  ctx.chat.id,
+                  `اسم استاد نمیتونه شامل عدد باشه.
+          لطفا اسم استادت رو دوباره وارد کن :)`,
+                  options
+                );
+                usersInfo[ctx.chat.id].menu = "professor_name";
+              } else {
+                usersInfo[ctx.chat.id].professor_name = ctx.message.text;
+                const options = {
+                  reply_markup: {
+                    keyboard: backKeyboard,
+                    resize_keyboard: true,
+                  },
+                };
+                bot.telegram.sendMessage(
+                  ctx.chat.id,
+                  `خیلی هم عالی! حالا این استادت چی درس میده؟`,
+                  options
+                );
+                usersInfo[ctx.chat.id].menu = "course_name";
+              }
+            } else if (usersInfo[ctx.chat.id].menu == "course_name") {
+              if (ctx.message.text.length < 3) {
+                  const options = {
+                    reply_markup: {
+                      keyboard: backKeyboard,
+                      resize_keyboard: true,
+                    },
+                  };
+                  bot.telegram.sendMessage(
+                    ctx.chat.id,
+                    `
+        اسم درس نمی‌تونه کمتر از ۳ حرف باشه!
+        لطفا یک اسم طولانی‌تر رو امتحان کن :)`,
+                    options
+                  );
+                  usersInfo[ctx.chat.id].menu = "course_name";
+                } else {
+                  usersInfo[ctx.chat.id].course_name = ctx.message.text;
+                  const options = {
+                    reply_markup: {
+                      keyboard: backKeyboard,
+                      resize_keyboard: true,
+                    },
+                  };
+                  bot.telegram.sendMessage(
+                    ctx.chat.id,
+                    `خب حالا نظرت در مورد این استاد چیه؟ خوب بود یا نه؟`,
+                    options
+                  );
+                  usersInfo[ctx.chat.id].menu = "new_comment";
+                }
+                }else if (usersInfo[ctx.chat.id].menu == "new_comment") {
+                  if (ctx.message.text.length < 50) {
+                    const options = {
+                      reply_markup: {
+                        keyboard: backKeyboard,
+                        resize_keyboard: true,
+                      },
+                    };
+                    bot.telegram.sendMessage(
+                      ctx.chat.id,
+                      `نظرت نمی‌تونه کمتر از ۵۰ کاراکتر باشه...`,
+                      options
+                    );
+                    usersInfo[ctx.chat.id].menu = "new_comment";
+                  } else if (/[a-zA-Z]/.test(ctx.message.text)) {
+                    const options = {
+                      reply_markup: {
+                        keyboard: backKeyboard,
+                        resize_keyboard: true,
+                      },
+                    };
+                    bot.telegram.sendMessage(
+                      ctx.chat.id,
+                      `نظرت نمیتونه شامل حروف انگلیسی باشه. لطفاً نظرت رو تماماً فارسی تایپ کن :)`,
+                      options
+                    );
+                    usersInfo[ctx.chat.id].menu = "new_comment";
+                  } else if (containsAbusiveWords(ctx.message.text.toString())) {
+                    const options = {
+                      reply_markup: {
+                        keyboard: backKeyboard,
+                        resize_keyboard: true,
+                      },
+                    };
+                    bot.telegram.sendMessage(
+                      ctx.chat.id,
+                      `خیلی بی‌ادبی 😔
+    این حرفای زشتو از کجا یادگرفتی؟ 😭
+    لطفاً این‌دفعه مودبانه نظرت رو بهم بگو...`,
+                      options
+                    );
+                    usersInfo[ctx.chat.id].menu = "new_comment";
+                  } else {
+
+                        let postText = `👤 ${usersInfo[ctx.chat.id].professor_name}
+🧑🏻‍🏫 نام درس: ${usersInfo[ctx.chat.id].course_name}
+
+✍️ نظر:
+    ${ctx.message.text.toString()}
+    
+    @UTGroups`;
+    
+                      
+                        // defining the inline keyboard:
+              const sendPost = [
+                {
+                  text: "❌",
+                  callback_data:
+                    "NPost#",
+                },
+                {
+                  text: "✅",
+                  callback_data:
+                    "Post#",
+                },
+              ];
+              // editting the message
+    
+              // sending the comments
+              bot.telegram.sendMessage(adminID, postText, {
+                reply_markup: { inline_keyboard: [sendPost] },
+              });
+                        
+              console.log(ctx, "Submitted a comment.");
+                    
+    
+                    // setting the options of the message:
+                    const options = {
+                      reply_markup: {
+                        keyboard: profKeyboard,
+                        resize_keyboard: true,
+                      },
+                    };
+                    // sending the message
+                    bot.telegram.sendMessage(
+                      ctx.chat.id,
+                      `نظر شما با موفقیت ثبت شد. لازم به ذکر است، نظر شما پس از تایید ادمین در کانال نمایش داده خواهد شد.`,
+                      options
+                    );
+    
+                    usersInfo[ctx.chat.id].menu = "main_menu";
+                  }
+                } else {
               resetBot(ctx.chat.id);
             }
           }
